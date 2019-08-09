@@ -42,6 +42,9 @@
     <ClCompile Include="SettingsWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StatisticsWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -55,12 +58,18 @@
     <QtMoc Include="SettingsWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="StatisticsWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="TimerTrack.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="SettingsWindow.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="StatisticsWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

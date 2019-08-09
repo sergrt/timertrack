@@ -28,12 +28,18 @@
      <string>Menu</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionStatistics">
+   <property name="text">
+    <string>Statistics</string>
    </property>
   </action>
  </widget>
