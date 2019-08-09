@@ -14,6 +14,15 @@ public:
     void load();
     void save() const;
 
+    static bool validateTimerPattern(const QString& pattern);
+    QString timerPattern() const;
+    void setTimerPattern(const QString& pattern);
+
+    std::set<FinishAction> finishActions() const;
+    void updateFinishAction(FinishAction action, bool enabled);
+    QString soundFileName() const;
+    int defaultCategoryId() const;
+
 private:
     static const QString settingsFileName;
 

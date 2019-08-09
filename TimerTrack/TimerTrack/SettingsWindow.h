@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "ui_SettingsWindow.h"
+#include "Settings.h"
 
 class SettingsWindow : public QWidget {
     Q_OBJECT
@@ -12,4 +13,8 @@ public:
 
 private:
     Ui::SettingsWindow ui;
+    Settings settings_;
+
+    void updateUiToSettings() const;
+    void setupUiSettingsHandlers();
 };

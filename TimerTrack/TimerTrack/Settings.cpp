@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Settings.h"
+#include <QRegExp>
 
 const QString Settings::settingsFileName{ "settings.ini" };
 
@@ -32,7 +33,7 @@ const QString Timer::DefaultCategoryId{ "DefaultCategoryId" };
 const QString FinishActions::Popup{ "Popup" };
 const QString FinishActions::Tooltip{ "Tooltip" };
 const QString FinishActions::Sound{ "Sound" };
-const QString FinishActions::Delimiter;
+const QString FinishActions::Delimiter{","};
 
 }
 
@@ -63,12 +64,17 @@ void Settings::load() {
     QSettings settings(settingsFileName, QSettings::Format::IniFormat);
 
     settings.beginGroup(IniFile::Timer);
-    timersPattern_ = settings.value(IniFile::Timer::TimerPattern).toString();
+    const auto timersPattern = settings.value(IniFile::Timer::TimerPattern).toString();
+    if (validateTimerPattern(timersPattern))
+        timersPattern_ = timersPattern;
+
     finishActions_.clear();
     const auto finishActionsStr = settings.value(IniFile::Timer::FinishActions).toString();
-    const auto parts = finishActionsStr.split(IniFile::FinishActions::Delimiter);
-    for (const auto& item : parts)
-        finishActions_.insert(finishActionFromString(item));
+    if (!finishActionsStr.isEmpty()) {
+        const auto parts = finishActionsStr.split(IniFile::FinishActions::Delimiter);
+        for (const auto& item : parts)
+            finishActions_.insert(finishActionFromString(item));
+    }
     soundFileName_ = settings.value(IniFile::Timer::SoundFileName).toString();
     defaultCategoryId_ = settings.value(IniFile::Timer::DefaultCategoryId, QVariant::fromValue(0)).toInt();
     settings.endGroup();
@@ -90,4 +96,44 @@ void Settings::save() const {
     settings.setValue(IniFile::Timer::SoundFileName, soundFileName_);
     settings.setValue(IniFile::Timer::DefaultCategoryId, defaultCategoryId_);
     settings.endGroup();
+}
+
+bool Settings::validateTimerPattern(const QString& pattern) {
+    const auto parts = pattern.split(",");
+    static const auto regExp = QRegExp(R"(^(?!$)(\d+h)?(\d+m)?(\d+s)?$)");
+    for (const auto& p : parts) {
+        if (regExp.indexIn(p) == -1)
+            return false;
+    }
+
+    return true;
+}
+
+QString Settings::timerPattern() const {
+    return timersPattern_;
+}
+
+void Settings::setTimerPattern(const QString& pattern) {
+    timersPattern_ = pattern;
+    save();
+}
+
+std::set<Settings::FinishAction> Settings::finishActions() const {
+    return finishActions_;
+}
+
+void Settings::updateFinishAction(FinishAction action, bool enabled) {
+    if (enabled)
+        finishActions_.insert(action);
+    else if (finishActions_.find(action) != finishActions_.end())
+        finishActions_.erase(action);
+    save();
+}
+
+QString Settings::soundFileName() const {
+    return soundFileName_;
+}
+
+int Settings::defaultCategoryId() const {
+    return defaultCategoryId_;
 }

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TimerTrack.h"
 #include <QtSql>
-#include "Settings.h"
+
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent) {
 
@@ -20,6 +20,4 @@ TimerTrack::TimerTrack(QWidget *parent)
         qDebug(query.lastError().text().toStdString().c_str());
     }
 
-    Settings s;
-    s.save();
 }
