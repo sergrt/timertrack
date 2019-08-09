@@ -137,3 +137,8 @@ QString Settings::soundFileName() const {
 int Settings::defaultCategoryId() const {
     return defaultCategoryId_;
 }
+
+void Settings::setDefaultCategoryId(int id) {
+    defaultCategoryId_ = id;
+    save();
+}

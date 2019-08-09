@@ -158,10 +158,10 @@
           <string>Categories</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8" columnstretch="0,0,0,0">
-          <item row="1" column="3">
-           <widget class="QPushButton" name="pushButton_2">
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Pick...</string>
+             <string>Color</string>
             </property>
            </widget>
           </item>
@@ -172,21 +172,18 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="label_4">
+          <item row="1" column="3">
+           <widget class="QPushButton" name="addCategoryPickColor">
             <property name="text">
-             <string>Color</string>
+             <string>Pick...</string>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QLineEdit" name="lineEdit_4"/>
-          </item>
-          <item row="0" column="0" rowspan="4">
-           <widget class="QListWidget" name="listWidget"/>
+           <widget class="QLineEdit" name="addCategoryColor"/>
           </item>
           <item row="2" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="addCategory">
             <property name="text">
              <string>Add</string>
             </property>
@@ -206,7 +203,17 @@
            </spacer>
           </item>
           <item row="0" column="2" colspan="2">
-           <widget class="QLineEdit" name="lineEdit_3"/>
+           <widget class="QLineEdit" name="addCategoryName"/>
+          </item>
+          <item row="0" column="0" rowspan="5">
+           <widget class="QListWidget" name="categoriesList"/>
+          </item>
+          <item row="4" column="1" colspan="3">
+           <widget class="QPushButton" name="delCategory">
+            <property name="text">
+             <string>Delete selected</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

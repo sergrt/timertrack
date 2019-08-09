@@ -21,7 +21,9 @@ public:
     std::set<FinishAction> finishActions() const;
     void updateFinishAction(FinishAction action, bool enabled);
     QString soundFileName() const;
+
     int defaultCategoryId() const;
+    void setDefaultCategoryId(int id);
 
 private:
     static const QString settingsFileName;

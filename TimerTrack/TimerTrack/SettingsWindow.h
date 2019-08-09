@@ -17,4 +17,5 @@ private:
 
     void updateUiToSettings() const;
     void setupUiSettingsHandlers();
+    void updateCategories() const;
 };
