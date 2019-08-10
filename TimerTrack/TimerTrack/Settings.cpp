@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Settings.h"
-#include <QRegExp>
+#include "Intervals.h"
 
 const QString Settings::settingsFileName{ "settings.ini" };
 
@@ -112,17 +112,6 @@ void Settings::save() const {
     settings.beginGroup(IniFile::ContextMenu);
     settings.setValue(IniFile::ContextMenu::ContextMenuEntries, contextMenuEntries_);
     settings.endGroup();
-}
-
-bool Settings::validateTimeEntries(const QString& pattern) {
-    const auto parts = pattern.split(",");
-    static const auto regExp = QRegExp(R"((^(?!$)(\d+h)?(\d+m)?(\d+s)?$)|(^\d{1,2}(:\d{1,2})?(:\d{1,2})?$))");
-    for (const auto& p : parts) {
-        if (regExp.indexIn(p) == -1)
-            return false;
-    }
-
-    return true;
 }
 
 QString Settings::timerPattern() const {

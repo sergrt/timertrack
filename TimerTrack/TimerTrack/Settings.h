@@ -14,7 +14,6 @@ public:
     void load();
     void save() const;
 
-    static bool validateTimeEntries(const QString& pattern);
     QString timerPattern() const;
     void setTimerPattern(const QString& pattern);
 

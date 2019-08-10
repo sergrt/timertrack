@@ -13,6 +13,7 @@ public:
     SettingsWindow(SqlLayer& sqlLayer, QWidget *parent = Q_NULLPTR);
     ~SettingsWindow();
 
+    QString getContextMenuEntries() const;
 private:
     Ui::SettingsWindow ui;
     SqlLayer& sqlLayer_;
@@ -21,4 +22,6 @@ private:
     void updateUiToSettings() const;
     void setupUiSettingsHandlers();
     void updateCategories() const;
+signals:
+    void contextMenuChanged();
 };

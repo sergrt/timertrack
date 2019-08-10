@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SettingsWindow.h"
 #include "SqlLayer.h"
+#include "Intervals.h"
 
 SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, QWidget *parent)
     : QWidget(parent),
@@ -26,13 +27,15 @@ void SettingsWindow::updateUiToSettings() const {
 
     const auto idx = ui.defaultCategoryId->findData(settings_.defaultCategoryId());
     ui.defaultCategoryId->setCurrentIndex(idx);
+
+    ui.contextMenuEntries->setText(settings_.contextMenuEntries());
 }
 
 void SettingsWindow::setupUiSettingsHandlers() {
     connect(ui.timerPattern, &QLineEdit::textChanged, this, [&]() {
         const auto s = ui.timerPattern->text();
         QPalette p;
-        if (Settings::validateTimeEntries(s)) {
+        if (validateTimeEntries(s)) {
             p.setColor(QPalette::Text, Qt::black);
             settings_.setTimerPattern(s);
         } else {
@@ -79,9 +82,10 @@ void SettingsWindow::setupUiSettingsHandlers() {
     connect(ui.contextMenuEntries, &QLineEdit::textChanged, this, [&]() {
         const auto s = ui.contextMenuEntries->text();
         QPalette p;
-        if (Settings::validateTimeEntries(s)) {
+        if (validateTimeEntries(s)) {
             p.setColor(QPalette::Text, Qt::black);
             settings_.setContextMenuEntries(s);
+            emit contextMenuChanged();
         } else {
             p.setColor(QPalette::Text, Qt::red);
         }
@@ -100,13 +104,10 @@ void SettingsWindow::updateCategories() const {
         if (!c.archived_) {
             ui.defaultCategoryId->addItem(c.name_, QVariant(c.id_));
             const auto idx = ui.defaultCategoryId->count() - 1;
-            QPixmap p(128, 128);
-            p.fill(c.color_);
-            QIcon icon(p);
-            ui.defaultCategoryId->setItemIcon(idx, icon);
+            ui.defaultCategoryId->setItemIcon(idx, c.createIcon());
             //if (c.archived_) ui.defaultCategoryId->setItemData(idx, QBrush(Qt::gray), Qt::TextColorRole);
 
-            QListWidgetItem* item = new QListWidgetItem(icon, c.name_);
+            QListWidgetItem* item = new QListWidgetItem(c.createIcon(), c.name_);
             item->setData(Qt::UserRole, QVariant(c.id_));
             //if (c.archived_) item->setTextColor(Qt::gray);
             ui.categoriesList->addItem(item);
@@ -114,3 +115,6 @@ void SettingsWindow::updateCategories() const {
     }
 }
 
+QString SettingsWindow::getContextMenuEntries() const {
+    return settings_.contextMenuEntries();
+}

@@ -22,4 +22,7 @@ private:
     QMenu popupMenu_;
 
     QList<std::chrono::milliseconds> intervals_;
+
+public slots:
+    void updateContextMenu();
 };
