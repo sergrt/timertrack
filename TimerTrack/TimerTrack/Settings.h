@@ -11,6 +11,7 @@ public:
     static FinishAction finishActionFromString(const QString& str);
     static QString finishActionToString(FinishAction f);
 
+    Settings();
     void load();
     void save() const;
 

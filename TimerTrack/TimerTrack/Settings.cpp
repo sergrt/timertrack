@@ -66,6 +66,10 @@ QString Settings::finishActionToString(FinishAction f) {
     throw std::runtime_error("Error converting string to FinishAction");
 }
 
+Settings::Settings() {
+    load();
+}
+
 void Settings::load() {
     QSettings settings(settingsFileName, QSettings::Format::IniFormat);
 

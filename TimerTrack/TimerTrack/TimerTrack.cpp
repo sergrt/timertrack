@@ -4,7 +4,7 @@
 
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent),
-    settingsWindow_(sqlLayer_) {
+    settingsWindow_(sqlLayer_, settings_) {
 
     ui.setupUi(this);
     connect(ui.actionSettings, &QAction::triggered, this, [this]() {
@@ -20,40 +20,51 @@ TimerTrack::TimerTrack(QWidget *parent)
         popupMenu_.exec(mapToGlobal(p));
     });
 
-    /*
-    connect(ui.startPattern, &QPushButton::clicked, this, [&]() {
-        intervals_ = splitPattern();
-
+    timer_.setSingleShot(true);
+    connect(&timer_, &QTimer::timeout, this, [&]() {
+        system("pause"); // TODO: finish action here
+        startTimer();
     });
-    */
 }
 
 void TimerTrack::updateContextMenu() {
     popupMenu_.clear();
-    // TODO: disconnect all signal/slot connections
 
-    popupMenu_.addAction("Start pattern");
+    const auto* startPattenAction = popupMenu_.addAction("Start pattern");
+    connect(startPattenAction, &QAction::triggered, this, [&]() {
+        intervals_ = patternToIntervals(settings_.timerPattern());
+        startTimer();
+    });
 
-    const auto entries = settingsWindow_.getContextMenuEntries();
-    const auto contextMenuIntervals = entriesToIntervals(entries);
+    const auto contextMenuIntervals = entriesToIntervals(settingsWindow_.getContextMenuEntries());
     const auto categories = sqlLayer_.readCategories();
 
     for (const auto& interval : contextMenuIntervals) {
         auto* menu = popupMenu_.addMenu(interval.second);
-        //auto* action = popupMenu_.addAction(interval.second);
-        //action->setData(interval.first.count());
         for (const auto& category : categories) {
             if (!category.archived_) {
                 auto* action = menu->addAction(category.name_);
                 action->setData(interval.first.count());
                 action->setIcon(category.createIcon());
+
+                connect(action, &QAction::triggered, this, [&, categoryId = category.id_, timerInterval = interval.first]() {
+                    intervals_ = std::vector<std::chrono::milliseconds>{ timerInterval };
+                    startTimer(categoryId);
+                });
             }
         }
     }
-    /*
-    auto* a = popupMenu_.addAction("05:00");
-    auto* m = popupMenu_.addMenu("10:00");
-    m->addAction("Default");
-    */
 }
 
+void TimerTrack::startTimer(std::optional<int> categoryId) {
+    if (intervals_.empty())
+        return;
+
+    const auto interval = intervals_.front();
+    if (!categoryId)
+        categoryId = settings_.defaultCategoryId();
+    qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.count()).arg(*categoryId).toStdString().c_str());
+
+    timer_.start(interval.count());
+    intervals_.erase(begin(intervals_));
+}

@@ -7,6 +7,6 @@ public:
     QColor color_ = QColor(Qt::black);
     bool archived_ = false;
 
-    QIcon createIcon() const;
+    [[nodiscard]] QIcon createIcon() const;
 };
 

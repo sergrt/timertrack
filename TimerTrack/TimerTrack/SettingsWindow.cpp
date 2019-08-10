@@ -1,15 +1,16 @@
 #include "stdafx.h"
 #include "SettingsWindow.h"
 #include "SqlLayer.h"
+#include "Settings.h"
 #include "Intervals.h"
 
-SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, QWidget *parent)
+SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *parent)
     : QWidget(parent),
-    sqlLayer_{ sqlLayer } {
+    sqlLayer_{ sqlLayer },
+    settings_{ settings } {
 
     ui.setupUi(this);
     updateCategories();
-    settings_.load();
     updateUiToSettings();
     setupUiSettingsHandlers();
 

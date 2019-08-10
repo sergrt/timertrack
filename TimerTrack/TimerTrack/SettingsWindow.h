@@ -2,22 +2,22 @@
 
 #include <QWidget>
 #include "ui_SettingsWindow.h"
-#include "Settings.h"
 
 class SqlLayer;
+class Settings;
 
 class SettingsWindow : public QWidget {
     Q_OBJECT
 
 public:
-    SettingsWindow(SqlLayer& sqlLayer, QWidget *parent = Q_NULLPTR);
+    SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *parent = Q_NULLPTR);
     ~SettingsWindow();
 
     QString getContextMenuEntries() const;
 private:
     Ui::SettingsWindow ui;
     SqlLayer& sqlLayer_;
-    Settings settings_;
+    Settings& settings_;
 
     void updateUiToSettings() const;
     void setupUiSettingsHandlers();

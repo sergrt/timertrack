@@ -57,11 +57,20 @@ std::map<std::chrono::milliseconds, QString> entriesToIntervals(const QString& e
     const auto items = entries.split(",");
     std::map<std::chrono::milliseconds, QString> res;
     for (const auto& i : items) {
-        if (validateTimeEntries(i)) {
-            const auto m = strToInterval(i);
-            if (m)
-                res[*m] = i;
-        }
+        const auto m = strToInterval(i);
+        if (m)
+            res[*m] = i;
+    }
+    return res;
+}
+
+std::vector<std::chrono::milliseconds> patternToIntervals(const QString& entries) {
+    const auto items = entries.split(",");
+    std::vector<std::chrono::milliseconds> res;
+    for (const auto& i : items) {
+        const auto m = strToInterval(i);
+        if (m)
+            res.push_back(*m);
     }
     return res;
 }
