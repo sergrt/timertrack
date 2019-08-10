@@ -14,7 +14,7 @@ public:
     void load();
     void save() const;
 
-    static bool validateTimerPattern(const QString& pattern);
+    static bool validateTimeEntries(const QString& pattern);
     QString timerPattern() const;
     void setTimerPattern(const QString& pattern);
 
@@ -25,6 +25,9 @@ public:
     int defaultCategoryId() const;
     void setDefaultCategoryId(int id);
 
+    QString contextMenuEntries() const;
+    void setContextMenuEntries(const QString& entries);
+
 private:
     static const QString settingsFileName;
 
@@ -32,4 +35,5 @@ private:
     std::set<FinishAction> finishActions_;
     QString soundFileName_;
     int defaultCategoryId_ = 0;
+    QString contextMenuEntries_;
 };

@@ -2,8 +2,9 @@
 #include "SettingsWindow.h"
 #include "SqlLayer.h"
 
-SettingsWindow::SettingsWindow(QWidget *parent)
-    : QWidget(parent) {
+SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, QWidget *parent)
+    : QWidget(parent),
+    sqlLayer_{ sqlLayer } {
 
     ui.setupUi(this);
     updateCategories();
@@ -31,7 +32,7 @@ void SettingsWindow::setupUiSettingsHandlers() {
     connect(ui.timerPattern, &QLineEdit::textChanged, this, [&]() {
         const auto s = ui.timerPattern->text();
         QPalette p;
-        if (Settings::validateTimerPattern(s)) {
+        if (Settings::validateTimeEntries(s)) {
             p.setColor(QPalette::Text, Qt::black);
             settings_.setTimerPattern(s);
         } else {
@@ -56,8 +57,7 @@ void SettingsWindow::setupUiSettingsHandlers() {
         Category c;
         c.name_ = ui.addCategoryName->text();
         c.color_ = QColor(ui.addCategoryColor->text());
-        SqlLayer s;
-        s.addCategory(c);
+        sqlLayer_.addCategory(c);
         updateCategories();
         updateUiToSettings();
     });
@@ -65,35 +65,52 @@ void SettingsWindow::setupUiSettingsHandlers() {
     connect(ui.delCategory, &QPushButton::clicked, this, [&]() {
         if (const auto* item = ui.categoriesList->currentItem()) {
             const int id = item->data(Qt::UserRole).toInt();
-            SqlLayer s;
-            s.deleteCategory(id);
+
+            if (sqlLayer_.isCategoryUsed(id))
+                sqlLayer_.archiveCategory(id);
+            else
+                sqlLayer_.deleteCategory(id);
+
             updateCategories();
             updateUiToSettings();
         }
     });
+
+    connect(ui.contextMenuEntries, &QLineEdit::textChanged, this, [&]() {
+        const auto s = ui.contextMenuEntries->text();
+        QPalette p;
+        if (Settings::validateTimeEntries(s)) {
+            p.setColor(QPalette::Text, Qt::black);
+            settings_.setContextMenuEntries(s);
+        } else {
+            p.setColor(QPalette::Text, Qt::red);
+        }
+        ui.contextMenuEntries->setPalette(p);
+     });
 }
 
 void SettingsWindow::updateCategories() const {
-    ui.defaultCategoryId->blockSignals(true);
+    const auto blocker = QSignalBlocker(ui.defaultCategoryId);
+
     ui.defaultCategoryId->clear();
     ui.categoriesList->clear();
 
-    // TODO: Subject to refactor
-    // There should be dependency injection - SqlLayer should be injected here
-    SqlLayer s;
-    const auto c = s.readCategories();
-    for (const auto& i : c) {
-        ui.defaultCategoryId->addItem(i.name_, QVariant(i.id_));
-        const auto idx = ui.defaultCategoryId->count() - 1;
-        QPixmap p(128, 128);
-        p.fill(i.color_);
-        QIcon icon(p);
-        ui.defaultCategoryId->setItemIcon(idx, icon);
+    const auto categories = sqlLayer_.readCategories();
+    for (const auto& c : categories) {
+        if (!c.archived_) {
+            ui.defaultCategoryId->addItem(c.name_, QVariant(c.id_));
+            const auto idx = ui.defaultCategoryId->count() - 1;
+            QPixmap p(128, 128);
+            p.fill(c.color_);
+            QIcon icon(p);
+            ui.defaultCategoryId->setItemIcon(idx, icon);
+            //if (c.archived_) ui.defaultCategoryId->setItemData(idx, QBrush(Qt::gray), Qt::TextColorRole);
 
-        QListWidgetItem* item = new QListWidgetItem(icon, i.name_);
-        item->setData(Qt::UserRole, QVariant(i.id_));
-        ui.categoriesList->addItem(item);
+            QListWidgetItem* item = new QListWidgetItem(icon, c.name_);
+            item->setData(Qt::UserRole, QVariant(c.id_));
+            //if (c.archived_) item->setTextColor(Qt::gray);
+            ui.categoriesList->addItem(item);
+        }
     }
-    ui.defaultCategoryId->blockSignals(false);
 }
 

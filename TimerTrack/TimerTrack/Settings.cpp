@@ -7,13 +7,17 @@ const QString Settings::settingsFileName{ "settings.ini" };
 namespace IniFile {
 // Section names
 static const QString Timer{ "Timer" };
-
+static const QString ContextMenu{ "ContextMenu" };
 // Section structure
 struct Timer {
     static const QString TimerPattern;
     static const QString FinishActions;
     static const QString SoundFileName;
     static const QString DefaultCategoryId;
+};
+
+struct ContextMenu {
+    static const QString ContextMenuEntries;
 };
 
 // Data structures
@@ -29,6 +33,8 @@ const QString Timer::TimerPattern{ "TimerPattern" };
 const QString Timer::FinishActions{ "FinishActions" };
 const QString Timer::SoundFileName{ "SoundFileName" };
 const QString Timer::DefaultCategoryId{ "DefaultCategoryId" };
+
+const QString ContextMenu::ContextMenuEntries{ "ContextMenuEntries" };
 
 const QString FinishActions::Popup{ "Popup" };
 const QString FinishActions::Tooltip{ "Tooltip" };
@@ -65,7 +71,7 @@ void Settings::load() {
 
     settings.beginGroup(IniFile::Timer);
     const auto timersPattern = settings.value(IniFile::Timer::TimerPattern).toString();
-    if (validateTimerPattern(timersPattern))
+    if (validateTimeEntries(timersPattern))
         timersPattern_ = timersPattern;
 
     finishActions_.clear();
@@ -77,6 +83,12 @@ void Settings::load() {
     }
     soundFileName_ = settings.value(IniFile::Timer::SoundFileName).toString();
     defaultCategoryId_ = settings.value(IniFile::Timer::DefaultCategoryId, QVariant::fromValue(0)).toInt();
+    settings.endGroup();
+
+    settings.beginGroup(IniFile::ContextMenu);
+    const auto contextMenuEntries = settings.value(IniFile::ContextMenu::ContextMenuEntries).toString();
+    if (validateTimeEntries(contextMenuEntries))
+        contextMenuEntries_ = contextMenuEntries;
     settings.endGroup();
 }
 
@@ -96,11 +108,15 @@ void Settings::save() const {
     settings.setValue(IniFile::Timer::SoundFileName, soundFileName_);
     settings.setValue(IniFile::Timer::DefaultCategoryId, defaultCategoryId_);
     settings.endGroup();
+
+    settings.beginGroup(IniFile::ContextMenu);
+    settings.setValue(IniFile::ContextMenu::ContextMenuEntries, contextMenuEntries_);
+    settings.endGroup();
 }
 
-bool Settings::validateTimerPattern(const QString& pattern) {
+bool Settings::validateTimeEntries(const QString& pattern) {
     const auto parts = pattern.split(",");
-    static const auto regExp = QRegExp(R"(^(?!$)(\d+h)?(\d+m)?(\d+s)?$)");
+    static const auto regExp = QRegExp(R"((^(?!$)(\d+h)?(\d+m)?(\d+s)?$)|(^\d{1,2}(:\d{1,2})?(:\d{1,2})?$))");
     for (const auto& p : parts) {
         if (regExp.indexIn(p) == -1)
             return false;
@@ -142,3 +158,13 @@ void Settings::setDefaultCategoryId(int id) {
     defaultCategoryId_ = id;
     save();
 }
+
+QString Settings::contextMenuEntries() const {
+    return contextMenuEntries_;
+}
+
+void Settings::setContextMenuEntries(const QString& entries) {
+    contextMenuEntries_ = entries;
+    save();
+}
+

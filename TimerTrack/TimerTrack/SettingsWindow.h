@@ -4,15 +4,18 @@
 #include "ui_SettingsWindow.h"
 #include "Settings.h"
 
+class SqlLayer;
+
 class SettingsWindow : public QWidget {
     Q_OBJECT
 
 public:
-    SettingsWindow(QWidget *parent = Q_NULLPTR);
+    SettingsWindow(SqlLayer& sqlLayer, QWidget *parent = Q_NULLPTR);
     ~SettingsWindow();
 
 private:
     Ui::SettingsWindow ui;
+    SqlLayer& sqlLayer_;
     Settings settings_;
 
     void updateUiToSettings() const;
