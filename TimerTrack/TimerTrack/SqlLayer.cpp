@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "SqlLayer.h"
-
+#include "Record.h"
 
 SqlLayer::SqlLayer() {
     database_.setDatabaseName("statistics.sqlite");
@@ -52,4 +52,74 @@ void SqlLayer::addCategory(const Category& c) const {
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error adding category");
+}
+
+QString toSqlTime(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
+    auto t = std::chrono::system_clock::to_time_t(timePoint);
+    return QString::fromStdString(std::to_string(t));
+}
+
+std::chrono::time_point<std::chrono::system_clock> fromSqlTime(int timePoint) {
+    return std::chrono::system_clock::from_time_t(timePoint);
+}
+
+int SqlLayer::addRecord(const Record& r) {
+    const QString query = QString(R"(INSERT INTO Records(Type, Category, Status, StartTime, PlannedTime, PassedTime)
+                                     VALUES ("%1", "%2", "%3", "%4", "%5", "%6"))")
+        .arg(r.type_)
+        .arg(r.category_)
+        .arg(r.status_)
+        .arg(toSqlTime(r.startTime_))
+        .arg(r.plannedTime_.count() / 1000)
+        .arg(r.passedTime_.count() / 1000);
+
+    const auto result = database_.exec(query);
+
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error adding record");
+    return result.lastInsertId().toInt();
+}
+
+std::vector<Record> SqlLayer::readRecords() const {
+    static const QString query = "SELECT * FROM Records ORDER BY id";
+    auto result = database_.exec(query);
+
+    if (result.lastError().isValid()) {
+        throw std::runtime_error("Error obtaining records");
+    }
+    std::vector<Record> res;
+    while (result.next()) {
+        Record r;
+
+        r.id_ = result.value("Id").toInt();
+        r.type_ = static_cast<Record::Type>(result.value("Type").toInt());
+        r.category_ = result.value("Category").toInt();
+        r.status_ = static_cast<Record::Status>(result.value("Status").toInt());
+        r.startTime_ = fromSqlTime(result.value("StartTime").toInt());
+        r.plannedTime_ = std::chrono::milliseconds{ result.value("PlannedTime").toInt() };
+        r.passedTime_ = std::chrono::milliseconds{ result.value("PassedTime").toInt() };
+
+        res.push_back(std::move(r));
+    }
+
+    return res;
+}
+
+void SqlLayer::finishRecord(int id) const {
+    const QString query = QString(R"(UPDATE Records SET Status = %1, PassedTime = PlannedTime WHERE id = %2)").arg(Record::Status::Finished).arg(id);
+    const auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error finishing record");
+}
+
+void SqlLayer::interruptRecord(int id) const {
+    const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    const QString query = QString(R"(UPDATE Records SET Status = %1, PassedTime = %2 - StartTime WHERE id = %3)")
+        .arg(Record::Status::Interrupted)
+        .arg(now)
+        .arg(id);
+    const auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error finishing record");
 }

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "TimerTrack.h"
 #include "Intervals.h"
+#include "Record.h"
 
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent),
@@ -22,9 +23,18 @@ TimerTrack::TimerTrack(QWidget *parent)
 
     timer_.setSingleShot(true);
     connect(&timer_, &QTimer::timeout, this, [&]() {
+        if (!activeRecord_)
+            throw std::runtime_error("Something bad happened");
+
+        sqlLayer_.finishRecord(*activeRecord_);
+        activeRecord_.reset();
         system("pause"); // TODO: finish action here
         startTimer();
     });
+}
+
+TimerTrack::~TimerTrack() {
+    interruptTimer();
 }
 
 void TimerTrack::updateContextMenu() {
@@ -54,6 +64,9 @@ void TimerTrack::updateContextMenu() {
             }
         }
     }
+    interruptAction_.reset(popupMenu_.addAction("Interrupt current timer"));
+    connect(interruptAction_.get(), &QAction::triggered, this, &TimerTrack::interruptTimer);
+    interruptAction_->setDisabled(!timer_.isActive());
 }
 
 void TimerTrack::startTimer(std::optional<int> categoryId) {
@@ -65,6 +78,26 @@ void TimerTrack::startTimer(std::optional<int> categoryId) {
         categoryId = settings_.defaultCategoryId();
     qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.count()).arg(*categoryId).toStdString().c_str());
 
+    const auto now = std::chrono::system_clock::now();
+    Record r;
+    r.type_ = Record::Type::Pomodoro;
+    r.category_ = *categoryId;
+    r.status_ = Record::Status::Started;
+    r.startTime_ = now;
+    r.plannedTime_ = interval;
+    r.passedTime_ = std::chrono::milliseconds{ 0 };
+    const auto id = sqlLayer_.addRecord(r);
+    activeRecord_ = id;
+
     timer_.start(interval.count());
     intervals_.erase(begin(intervals_));
+    interruptAction_->setDisabled(!timer_.isActive());
+}
+
+void TimerTrack::interruptTimer() {
+    if (!activeRecord_)
+        return;
+    timer_.stop();
+    sqlLayer_.interruptRecord(*activeRecord_);
+    activeRecord_.reset();
 }

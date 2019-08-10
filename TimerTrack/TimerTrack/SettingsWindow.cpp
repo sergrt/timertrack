@@ -13,7 +13,6 @@ SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *
     updateCategories();
     updateUiToSettings();
     setupUiSettingsHandlers();
-
 }
 
 SettingsWindow::~SettingsWindow() = default;
@@ -27,7 +26,10 @@ void SettingsWindow::updateUiToSettings() const {
     ui.soundFileName->setText(settings_.soundFileName());
 
     const auto idx = ui.defaultCategoryId->findData(settings_.defaultCategoryId());
-    ui.defaultCategoryId->setCurrentIndex(idx);
+    if (idx != -1)
+        ui.defaultCategoryId->setCurrentIndex(idx);
+    else
+        ui.defaultCategoryId->setCurrentIndex(0);
 
     ui.contextMenuEntries->setText(settings_.contextMenuEntries());
 }
@@ -68,15 +70,17 @@ void SettingsWindow::setupUiSettingsHandlers() {
 
     connect(ui.delCategory, &QPushButton::clicked, this, [&]() {
         if (const auto* item = ui.categoriesList->currentItem()) {
-            const int id = item->data(Qt::UserRole).toInt();
+            if (ui.categoriesList->count() > 1) { // TODO: show notification
+                const int id = item->data(Qt::UserRole).toInt();
 
-            if (sqlLayer_.isCategoryUsed(id))
-                sqlLayer_.archiveCategory(id);
-            else
-                sqlLayer_.deleteCategory(id);
+                if (sqlLayer_.isCategoryUsed(id))
+                    sqlLayer_.archiveCategory(id);
+                else
+                    sqlLayer_.deleteCategory(id);
 
-            updateCategories();
-            updateUiToSettings();
+                updateCategories();
+                updateUiToSettings();
+            }
         }
     });
 

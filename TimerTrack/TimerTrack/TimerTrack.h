@@ -15,6 +15,7 @@ class TimerTrack : public QMainWindow {
 
 public:
     TimerTrack(QWidget *parent = Q_NULLPTR);
+    ~TimerTrack();
 
 private:
     Ui::TimerTrackClass ui;
@@ -27,7 +28,9 @@ private:
     std::vector<std::chrono::milliseconds> intervals_; //TODO: consider queue
     void startTimer(std::optional<int> categoryId = std::nullopt);
     QTimer timer_;
-
+    std::optional<int> activeRecord_;
+    std::unique_ptr<QAction> interruptAction_;
 public slots:
     void updateContextMenu();
+    void interruptTimer();
 };

@@ -125,6 +125,7 @@
     <ClCompile Include="Category.cpp" />
     <ClCompile Include="Intervals.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Record.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SettingsWindow.cpp" />
     <ClCompile Include="SqlLayer.cpp" />
@@ -138,8 +139,10 @@
   <ItemGroup>
     <ClInclude Include="Category.h" />
     <ClInclude Include="Intervals.h" />
+    <ClInclude Include="Record.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SqlLayer.h" />
+    <ClInclude Include="StrongType.h" />
     <QtMoc Include="StatisticsWindow.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>

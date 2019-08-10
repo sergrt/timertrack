@@ -1,7 +1,6 @@
 #pragma once
-class Category {
-public:
 
+struct Category {
     int id_ = 0;
     QString name_;
     QColor color_ = QColor(Qt::black);
@@ -9,4 +8,3 @@ public:
 
     [[nodiscard]] QIcon createIcon() const;
 };
-
