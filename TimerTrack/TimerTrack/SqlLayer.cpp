@@ -12,12 +12,12 @@ SqlLayer::SqlLayer() {
 }
 
 std::vector<Category> SqlLayer::readCategories() const {
-    static const QString query = "SELECT * FROM Categories ORDER BY id";
+    static const auto query = QString("SELECT * FROM Categories ORDER BY id");
     auto result = database_.exec(query);
 
-    if (result.lastError().isValid()) {
+    if (result.lastError().isValid())
         throw std::runtime_error("Error obtaining categories");
-    }
+
     std::vector<Category> res;
     while (result.next()) {
         Category c;
@@ -33,21 +33,21 @@ std::vector<Category> SqlLayer::readCategories() const {
 }
 
 void SqlLayer::deleteCategory(int id) const {
-    const QString query = QString("DELETE FROM Categories WHERE id = %1").arg(id);
+    const auto query = QString("DELETE FROM Categories WHERE id = %1").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error deleting category");
 }
 
 void SqlLayer::archiveCategory(int id) const {
-    const QString query = QString(R"(UPDATE Categories SET Archived = "TRUE" WHERE id = %1)").arg(id);
+    const auto query = QString(R"(UPDATE Categories SET Archived = "TRUE" WHERE id = %1)").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error archiving category");
 }
 
 void SqlLayer::unarchiveCategory(int id) const {
-    const QString query = QString(R"(UPDATE Categories SET Archived = "FALSE" WHERE id = %1)").arg(id);
+    const auto query = QString(R"(UPDATE Categories SET Archived = "FALSE" WHERE id = %1)").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error unarchiving category");
@@ -55,7 +55,7 @@ void SqlLayer::unarchiveCategory(int id) const {
 
 bool SqlLayer::isCategoryUsed(int id) const {
     // Check if any record in the log uses category indicated by supplied 'id'.
-    const QString query = QString(R"(SELECT count(*) as Count FROM Records WHERE Category = %1)").arg(id);
+    const auto query = QString(R"(SELECT count(*) as Count FROM Records WHERE Category = %1)").arg(id);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error checking category usage");
@@ -68,7 +68,7 @@ bool SqlLayer::isCategoryUsed(int id) const {
 }
 
 bool SqlLayer::isCategoryArchived(int id) const {
-    const QString query = QString(R"(SELECT * FROM Categories WHERE Id = %1)").arg(id);
+    const auto query = QString(R"(SELECT * FROM Categories WHERE Id = %1)").arg(id);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error checking category usage");
@@ -80,31 +80,33 @@ bool SqlLayer::isCategoryArchived(int id) const {
     return false;
 }
 
-void SqlLayer::addCategory(const Category& c) const {
-    const QString query = QString(R"(INSERT INTO Categories(Name, Color, Archived) VALUES ("%1", "%2", "FALSE"))").arg(c.name_).arg(c.color_.name());
+int SqlLayer::addCategory(const Category& c) const {
+    const auto query = QString(R"(INSERT INTO Categories(Name, Color, Archived) VALUES ("%1", "%2", "FALSE"))").arg(c.name_).arg(c.color_.name());
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error adding category");
+
+    return result.lastInsertId().toInt();
 }
 
 void SqlLayer::updateCategory(int id, const QString& name, const QColor& color) const {
-    const QString query = QString(R"(UPDATE Categories SET Name = "%1", Color = "%2" WHERE Id = %3)").arg(name).arg(color.name()).arg(id);
+    const auto query = QString(R"(UPDATE Categories SET Name = "%1", Color = "%2" WHERE Id = %3)").arg(name).arg(color.name()).arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error updating category");
 }
 
 QString toSqlTime(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
-    auto t = std::chrono::system_clock::to_time_t(timePoint);
-    return QString::fromStdString(std::to_string(t));
+    const auto now = std::chrono::system_clock::to_time_t(timePoint);
+    return QString::fromStdString(std::to_string(now));
 }
 
 std::chrono::time_point<std::chrono::system_clock> fromSqlTime(int timePoint) {
     return std::chrono::system_clock::from_time_t(timePoint);
 }
 
-int SqlLayer::addRecord(const Record& r) {
-    const QString query = QString(R"(INSERT INTO Records(Type, Category, Status, StartTime, PlannedTime, PassedTime)
+int SqlLayer::addRecord(const Record& r) const {
+    const auto query = QString(R"(INSERT INTO Records(Type, Category, Status, StartTime, PlannedTime, PassedTime)
                                      VALUES ("%1", "%2", "%3", "%4", "%5", "%6"))")
         .arg(r.type_)
         .arg(r.category_)
@@ -117,11 +119,12 @@ int SqlLayer::addRecord(const Record& r) {
 
     if (result.lastError().isValid())
         throw std::runtime_error("Error adding record");
+
     return result.lastInsertId().toInt();
 }
 
 std::vector<Record> SqlLayer::readRecords() const {
-    static const QString query = "SELECT * FROM Records ORDER BY id";
+    static const auto query = QString("SELECT * FROM Records ORDER BY id");
     auto result = database_.exec(query);
 
     if (result.lastError().isValid())
@@ -130,7 +133,6 @@ std::vector<Record> SqlLayer::readRecords() const {
     std::vector<Record> res;
     while (result.next()) {
         Record r;
-
         r.id_ = result.value("Id").toInt();
         r.type_ = static_cast<Record::Type>(result.value("Type").toInt());
         r.category_ = result.value("Category").toInt();
@@ -146,7 +148,7 @@ std::vector<Record> SqlLayer::readRecords() const {
 }
 
 void SqlLayer::finishRecord(int id) const {
-    const QString query = QString(R"(UPDATE Records SET Status = %1, PassedTime = PlannedTime WHERE id = %2)").arg(Record::Status::Finished).arg(id);
+    const auto query = QString(R"(UPDATE Records SET Status = %1, PassedTime = PlannedTime WHERE id = %2)").arg(Record::Status::Finished).arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error finishing record");
@@ -154,8 +156,7 @@ void SqlLayer::finishRecord(int id) const {
 
 void SqlLayer::interruptRecord(int id) const {
     const auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-    const QString query = QString(R"(UPDATE Records SET Status = %1, PassedTime = %2 - StartTime WHERE id = %3)")
+    const auto query = QString(R"(UPDATE Records SET Status = %1, PassedTime = %2 - StartTime WHERE id = %3)")
         .arg(Record::Status::Interrupted)
         .arg(now)
         .arg(id);
@@ -164,21 +165,8 @@ void SqlLayer::interruptRecord(int id) const {
         throw std::runtime_error("Error finishing record");
 }
 
-bool SqlLayer::checkIdIsLastNotArchived(int id) const {
-    const QString query = QString(R"(SELECT count(*) as Count FROM Categories WHERE Id != %1 and Archived != "TRUE")").arg(id);
-    auto result = database_.exec(query);
-    if (result.lastError().isValid())
-        throw std::runtime_error("Error checking category usage");
-
-    while (result.next())
-        return result.value("Count").toInt() == 0;
-
-    assert("Cannot be here");
-    return true;
-}
-
 int SqlLayer::restingCategoryId() const {
-    static const QString query = QString(R"(SELECT Id FROM Categories WHERE Role = "%1")").arg(restingCategoryRole);
+    static const auto query = QString(R"(SELECT Id FROM Categories WHERE Role = "%1")").arg(restingCategoryRole);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error obtaining resting category id");
@@ -191,7 +179,7 @@ int SqlLayer::restingCategoryId() const {
 }
 
 bool SqlLayer::isCategoryPersistent(int id) const {
-    const QString query =
+    const auto query =
         QString(R"(SELECT
                      CASE WHEN Count(*) > 0 THEN TRUE ELSE FALSE END
                    AS IsPersistent

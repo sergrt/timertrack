@@ -159,6 +159,7 @@ void TimerTrack::startTimer(std::optional<int> categoryId) {
 void TimerTrack::interruptTimer() {
     if (!activeRecord_)
         return;
+
     sqlLayer_.interruptRecord(*activeRecord_);
     stopTimer();
 }

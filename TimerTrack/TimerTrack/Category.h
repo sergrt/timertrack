@@ -12,7 +12,7 @@ struct Category {
         Misc
     };
 
-    Role role_;
+    Role role_ = Role::Misc;
     static Role roleFromStr(const QString& roleStr);
 
     [[nodiscard]] QIcon createIcon() const;

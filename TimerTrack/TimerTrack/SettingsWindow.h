@@ -21,8 +21,21 @@ private:
 
     void updateUiToSettings() const;
     void setupUiSettingsHandlers();
-    void updateCategories() const;
+    void updateUiToDatabase() const;
+    void reloadCategories() const;
     void selectCategoryInListById(int id) const;
+
 signals:
-    void contextMenuChanged();
+    void contextMenuChanged() const;
+
+public slots:
+    void browseSoundFile();
+    void timerPatternChanged() const;
+    void contextMenuItemsChanged() const;
+    void addCategory() const;
+    void activateCategory() const;
+    void updateCategory() const;
+    void deleteCategory() const;
+    void pickCategoryColor() const;
+    void categoryListSelChanged() const;
 };
