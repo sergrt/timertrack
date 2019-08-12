@@ -6,5 +6,14 @@ struct Category {
     QColor color_ = QColor(Qt::black);
     bool archived_ = false;
 
+    enum class Role {
+        Resting,
+        Default,
+        Misc
+    };
+
+    Role role_;
+    static Role roleFromStr(const QString& roleStr);
+
     [[nodiscard]] QIcon createIcon() const;
 };

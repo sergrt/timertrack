@@ -13,8 +13,7 @@ struct Timer {
     static const QString TimerPattern;
     static const QString FinishActions;
     static const QString SoundFileName;
-    static const QString DefaultOddCategoryId;
-    static const QString DefaultEvenCategoryId;
+    static const QString DefaultCategoryId;
 };
 
 struct ContextMenu {
@@ -33,8 +32,7 @@ struct FinishActions {
 const QString Timer::TimerPattern{ "TimerPattern" };
 const QString Timer::FinishActions{ "FinishActions" };
 const QString Timer::SoundFileName{ "SoundFileName" };
-const QString Timer::DefaultOddCategoryId{ "DefaultOddCategoryId" };
-const QString Timer::DefaultEvenCategoryId{ "DefaultEvenCategoryId" };
+const QString Timer::DefaultCategoryId{ "DefaultCategoryId" };
 
 const QString ContextMenu::ContextMenuEntries{ "ContextMenuEntries" };
 
@@ -88,8 +86,7 @@ void Settings::load() {
             finishActions_.insert(finishActionFromString(item));
     }
     soundFileName_ = settings.value(IniFile::Timer::SoundFileName).toString();
-    defaultOddCategoryId_ = settings.value(IniFile::Timer::DefaultOddCategoryId, QVariant::fromValue(0)).toInt();
-    defaultEvenCategoryId_ = settings.value(IniFile::Timer::DefaultEvenCategoryId, QVariant::fromValue(0)).toInt();
+    defaultCategoryId_ = settings.value(IniFile::Timer::DefaultCategoryId, QVariant::fromValue(0)).toInt();
     settings.endGroup();
 
     settings.beginGroup(IniFile::ContextMenu);
@@ -113,8 +110,7 @@ void Settings::save() const {
 
     settings.setValue(IniFile::Timer::FinishActions, finishActionsStr);
     settings.setValue(IniFile::Timer::SoundFileName, soundFileName_);
-    settings.setValue(IniFile::Timer::DefaultOddCategoryId, defaultOddCategoryId_);
-    settings.setValue(IniFile::Timer::DefaultEvenCategoryId, defaultEvenCategoryId_);
+    settings.setValue(IniFile::Timer::DefaultCategoryId, defaultCategoryId_);
     settings.endGroup();
 
     settings.beginGroup(IniFile::ContextMenu);
@@ -152,22 +148,12 @@ void Settings::setSoundFileName(const QString& fileName) {
     save();
 }
 
-
-int Settings::defaultOddCategoryId() const {
-    return defaultOddCategoryId_;
+int Settings::defaultCategoryId() const {
+    return defaultCategoryId_;
 }
 
-void Settings::setDefaultOddCategoryId(int id) {
-    defaultOddCategoryId_ = id;
-    save();
-}
-
-int Settings::defaultEvenCategoryId() const {
-    return defaultEvenCategoryId_;
-}
-
-void Settings::setDefaultEvenCategoryId(int id) {
-    defaultEvenCategoryId_ = id;
+void Settings::setDefaultCategoryId(int id) {
+    defaultCategoryId_ = id;
     save();
 }
 

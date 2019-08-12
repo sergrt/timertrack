@@ -2,6 +2,9 @@
 #include "SqlLayer.h"
 #include "Record.h"
 
+extern const QString restingCategoryRole = "Resting";
+extern const QString defaultCategoryRole = "Default";
+
 SqlLayer::SqlLayer() {
     database_.setDatabaseName("statistics.sqlite");
     if (!database_.open())
@@ -22,6 +25,7 @@ std::vector<Category> SqlLayer::readCategories() const {
         c.name_ = result.value("Name").toString();
         c.color_ = QColor(result.value("Color").toString());
         c.archived_ = result.value("Archived").toBool();
+        c.role_ = Category::roleFromStr(result.value("Role").toString());
         res.push_back(std::move(c));
     }
     
@@ -168,6 +172,40 @@ bool SqlLayer::checkIdIsLastNotArchived(int id) const {
 
     while (result.next())
         return result.value("Count").toInt() == 0;
+
+    assert("Cannot be here");
+    return true;
+}
+
+int SqlLayer::restingCategoryId() const {
+    static const QString query = QString(R"(SELECT Id FROM Categories WHERE Role = "%1")").arg(restingCategoryRole);
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error obtaining resting category id");
+
+    while (result.next())
+        return result.value("Id").toInt();
+
+    assert("Cannot be here");
+    return 0;
+}
+
+bool SqlLayer::isCategoryPersistent(int id) const {
+    const QString query =
+        QString(R"(SELECT
+                     CASE WHEN Count(*) > 0 THEN TRUE ELSE FALSE END
+                   AS IsPersistent
+                   FROM Categories WHERE (Role = "%1" OR Role = "%2") AND Id = %3)")
+        .arg(restingCategoryRole)
+        .arg(defaultCategoryRole)
+        .arg(id);
+
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error getting whether category is persistent");
+
+    while (result.next())
+        return result.value("IsPersistent").toBool();
 
     assert("Cannot be here");
     return true;

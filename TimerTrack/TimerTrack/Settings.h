@@ -22,11 +22,8 @@ public:
     void updateFinishAction(FinishAction action, bool enabled);
     
 
-    int defaultOddCategoryId() const;
-    void setDefaultOddCategoryId(int id);
-
-    int defaultEvenCategoryId() const;
-    void setDefaultEvenCategoryId(int id);
+    int defaultCategoryId() const;
+    void setDefaultCategoryId(int id);
 
     QString contextMenuEntries() const;
     void setContextMenuEntries(const QString& entries);
@@ -40,7 +37,6 @@ private:
     QString timersPattern_;
     std::set<FinishAction> finishActions_;
     QString soundFileName_;
-    int defaultOddCategoryId_ = 0;
-    int defaultEvenCategoryId_ = 0;
+    int defaultCategoryId_ = 0;
     QString contextMenuEntries_;
 };

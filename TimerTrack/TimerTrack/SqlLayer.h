@@ -4,6 +4,9 @@
 
 class Record;
 
+//extern const QString restingCategoryRole;
+//extern const QString defaultCategoryRole;
+
 class SqlLayer {
 public:
     SqlLayer();
@@ -21,6 +24,8 @@ public:
     void interruptRecord(int id) const;
     bool checkIdIsLastNotArchived(int id) const;
     void updateCategory(int id, const QString& name, const QColor& color) const;
+    int restingCategoryId() const;
+    bool isCategoryPersistent(int id) const;
 private:
     QSqlDatabase database_ = QSqlDatabase::addDatabase("QSQLITE");
 };

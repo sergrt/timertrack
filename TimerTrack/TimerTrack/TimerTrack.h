@@ -36,7 +36,17 @@ private:
     QSystemTrayIcon trayIcon_;
     QMediaPlayer mediaPlayer_;
 
+    void setupTrayIcon();
+    void iconActivated(QSystemTrayIcon::ActivationReason reason);
+    void executeFinishActions();
+    void stopTimer();
+    void startTimer(std::chrono::milliseconds interval, int recordId);
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 public slots:
     void updateContextMenu();
     void interruptTimer();
+    void timerFinished();
+    void startTimerPattern();
 };

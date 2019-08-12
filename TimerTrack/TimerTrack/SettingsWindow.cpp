@@ -25,17 +25,11 @@ void SettingsWindow::updateUiToSettings() const {
     ui.finishActionSound->setChecked(finishActions.find(Settings::FinishAction::Sound) != finishActions.end());
     ui.soundFileName->setText(settings_.soundFileName());
 
-    const auto idxOdd = ui.defaultOddCategoryId->findData(settings_.defaultOddCategoryId());
-    if (idxOdd != -1)
-        ui.defaultOddCategoryId->setCurrentIndex(idxOdd);
+    const auto idx = ui.defaultCategoryId->findData(settings_.defaultCategoryId());
+    if (idx != -1)
+        ui.defaultCategoryId->setCurrentIndex(idx);
     else
-        ui.defaultOddCategoryId->setCurrentIndex(0);
-
-    const auto idxEven = ui.defaultEvenCategoryId->findData(settings_.defaultEvenCategoryId());
-    if (idxOdd != -1)
-        ui.defaultEvenCategoryId->setCurrentIndex(idxOdd);
-    else
-        ui.defaultEvenCategoryId->setCurrentIndex(0);
+        ui.defaultCategoryId->setCurrentIndex(0);
 
     ui.contextMenuEntries->setText(settings_.contextMenuEntries());
 }
@@ -61,11 +55,8 @@ void SettingsWindow::setupUiSettingsHandlers() {
     connect(ui.finishActionSound, &QCheckBox::stateChanged, this, [&]() {
         settings_.updateFinishAction(Settings::FinishAction::Sound, ui.finishActionSound->isChecked());
     });
-    connect(ui.defaultOddCategoryId, &QComboBox::currentTextChanged, this, [&]() {
-        settings_.setDefaultOddCategoryId(ui.defaultOddCategoryId->currentData().toInt());
-    });
-    connect(ui.defaultEvenCategoryId, &QComboBox::currentTextChanged, this, [&]() {
-        settings_.setDefaultEvenCategoryId(ui.defaultEvenCategoryId->currentData().toInt());
+    connect(ui.defaultCategoryId, &QComboBox::currentTextChanged, this, [&]() {
+        settings_.setDefaultCategoryId(ui.defaultCategoryId->currentData().toInt());
     });
 
     connect(ui.addCategory, &QPushButton::clicked, this, [&]() {
@@ -82,6 +73,9 @@ void SettingsWindow::setupUiSettingsHandlers() {
             const int id = item->data(Qt::UserRole).toInt();
             if (sqlLayer_.isCategoryArchived(id)) {
                 QMessageBox msg(QMessageBox::Information, "", "Category is archived and cannot be deleted. Some records in the database use it.", QMessageBox::Ok, this);
+                msg.exec();
+            } else if (sqlLayer_.isCategoryPersistent(id)) {
+                QMessageBox msg(QMessageBox::Information, "", "Category is persistent and cannot be deleted.", QMessageBox::Ok, this);
                 msg.exec();
             } else {
                 // Check if it is last not archived category
@@ -191,26 +185,20 @@ void SettingsWindow::selectCategoryInListById(int id) const {
 }
 
 void SettingsWindow::updateCategories() const {
-    const auto blockerOdd = QSignalBlocker(ui.defaultOddCategoryId);
-    const auto blockerEven = QSignalBlocker(ui.defaultEvenCategoryId);
+    const auto blockerOdd = QSignalBlocker(ui.defaultCategoryId);
 
-    ui.defaultOddCategoryId->clear();
-    ui.defaultEvenCategoryId->clear();
+    ui.defaultCategoryId->clear();
     ui.categoriesList->clear();
 
     const auto categories = sqlLayer_.readCategories();
     for (const auto& c : categories) {
         //if (!c.archived_)
         {
-            if (!c.archived_) {
-                ui.defaultOddCategoryId->addItem(c.name_, QVariant(c.id_));
-                const auto idxOdd = ui.defaultOddCategoryId->count() - 1;
-                ui.defaultOddCategoryId->setItemIcon(idxOdd, c.createIcon());
+            if (!c.archived_ && c.role_ != Category::Role::Resting) {
+                ui.defaultCategoryId->addItem(c.name_, QVariant(c.id_));
+                const auto idxOdd = ui.defaultCategoryId->count() - 1;
+                ui.defaultCategoryId->setItemIcon(idxOdd, c.createIcon());
                 //if (c.archived_) ui.defaultCategoryId->setItemData(idx, QBrush(Qt::gray), Qt::TextColorRole);
-
-                ui.defaultEvenCategoryId->addItem(c.name_, QVariant(c.id_));
-                const auto idxEven = ui.defaultEvenCategoryId->count() - 1;
-                ui.defaultEvenCategoryId->setItemIcon(idxEven, c.createIcon());
             }
 
             QListWidgetItem* item = new QListWidgetItem(c.createIcon(), c.name_);
