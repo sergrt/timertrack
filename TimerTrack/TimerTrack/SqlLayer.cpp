@@ -106,9 +106,8 @@ std::chrono::time_point<std::chrono::system_clock> fromSqlTime(int timePoint) {
 }
 
 int SqlLayer::addRecord(const Record& r) const {
-    const auto query = QString(R"(INSERT INTO Records(Type, Category, Status, StartTime, PlannedTime, PassedTime)
-                                     VALUES ("%1", "%2", "%3", "%4", "%5", "%6"))")
-        .arg(r.type_)
+    const auto query = QString(R"(INSERT INTO Records(Category, Status, StartTime, PlannedTime, PassedTime)
+                                     VALUES ("%1", "%2", "%3", "%4", "%5"))")
         .arg(r.category_)
         .arg(r.status_)
         .arg(toSqlTime(r.startTime_))
@@ -134,7 +133,6 @@ std::vector<Record> SqlLayer::readRecords() const {
     while (result.next()) {
         Record r;
         r.id_ = result.value("Id").toInt();
-        r.type_ = static_cast<Record::Type>(result.value("Type").toInt());
         r.category_ = result.value("Category").toInt();
         r.status_ = static_cast<Record::Status>(result.value("Status").toInt());
         r.startTime_ = fromSqlTime(result.value("StartTime").toInt());
@@ -197,4 +195,41 @@ bool SqlLayer::isCategoryPersistent(int id) const {
 
     assert("Cannot be here");
     return true;
+}
+
+std::vector<std::pair<int, int>> SqlLayer::getCompletedPomodoros(const std::vector<int>& categories,
+                                                                 const QDateTime& from,
+                                                                 const QDateTime& till) const {
+    if (categories.empty())
+        return std::vector<std::pair<int, int>>();
+
+    auto categoriesStr = QString();
+    for (const auto c : categories)
+        categoriesStr += QString("%1").arg(c) + ",";
+
+    categoriesStr.remove(categoriesStr.size() - 1, 1);
+
+    const auto query =
+        QString(R"(SELECT
+                      Count(*) as Count,
+                      StartTime as Date
+                  FROM Records
+                  WHERE StartTime >= '%1' AND StartTime <='%2'
+                  AND Category IN (%3)
+                  GROUP BY strftime('%d-%m-%Y', StartTime, 'unixepoch')
+                  ORDER BY Date)")
+        .arg(from.toSecsSinceEpoch())
+        .arg(till.toSecsSinceEpoch())
+        .arg(categoriesStr);
+
+    std::vector<std::pair<int, int>> res;
+
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error getting statistics data");
+
+    while (result.next())
+        res.emplace_back(result.value("Date").toInt(), result.value("Count").toInt());
+
+    return res;
 }

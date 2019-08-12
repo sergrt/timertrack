@@ -25,6 +25,10 @@ public:
     void updateCategory(int id, const QString& name, const QColor& color) const;
     int restingCategoryId() const;
     bool isCategoryPersistent(int id) const;
+
+    std::vector<std::pair<int, int>> getCompletedPomodoros(const std::vector<int>& categories,
+                                                           const QDateTime& from,
+                                                           const QDateTime& till) const;
 private:
     QSqlDatabase database_ = QSqlDatabase::addDatabase("QSQLITE");
 };

@@ -5,7 +5,8 @@
 
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent),
-    settingsWindow_(sqlLayer_, settings_) {
+    settingsWindow_(sqlLayer_, settings_),
+    statisticsWindow_(sqlLayer_) {
 
     ui.setupUi(this);
     setupTrayIcon();
@@ -143,7 +144,6 @@ void TimerTrack::startTimer(std::optional<int> categoryId) {
     qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.first.count()).arg(*categoryId).toStdString().c_str());
 
     Record r;
-    r.type_ = Record::Type::Pomodoro;
     r.category_ = *categoryId;
     r.status_ = Record::Status::Started;
     r.startTime_ = std::chrono::system_clock::now();

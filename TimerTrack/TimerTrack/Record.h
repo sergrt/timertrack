@@ -3,12 +3,6 @@
 
 struct Record {
     int id_;
-    enum Type {
-        Pomodoro = 0,
-        Rest = 1
-    };
-    Type type_;
-
     enum Status {
         Started = 0,
         Finished = 1,
