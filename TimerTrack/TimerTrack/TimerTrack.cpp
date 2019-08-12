@@ -8,6 +8,11 @@ TimerTrack::TimerTrack(QWidget *parent)
     settingsWindow_(sqlLayer_, settings_) {
 
     ui.setupUi(this);
+
+    trayIcon_.setIcon(this->style()->standardIcon(QStyle::SP_ComputerIcon));
+    trayIcon_.setToolTip("TimerTrack");
+    trayIcon_.show();
+
     connect(ui.actionSettings, &QAction::triggered, this, [this]() {
         settingsWindow_.show();
     });
@@ -28,7 +33,18 @@ TimerTrack::TimerTrack(QWidget *parent)
 
         sqlLayer_.finishRecord(*activeRecord_);
         activeRecord_.reset();
-        system("pause"); // TODO: finish action here
+        const auto finishActions = settings_.finishActions();
+        for (const auto& a : finishActions) {
+            if (a == Settings::FinishAction::Popup) {
+                QMessageBox box(QMessageBox::Information, "Finished", "Interval finished", QMessageBox::NoButton, this);
+                box.exec();
+            } else if (a == Settings::FinishAction::Tooltip) {
+                trayIcon_.showMessage("Finished", "Interval finished");
+            } else if (a == Settings::FinishAction::Sound) {
+                mediaPlayer_.setMedia(QUrl::fromLocalFile(settings_.soundFileName()));
+                mediaPlayer_.play();
+            }
+        }
         startTimer();
     });
 }
@@ -42,7 +58,14 @@ void TimerTrack::updateContextMenu() {
 
     const auto* startPattenAction = popupMenu_.addAction("Start pattern");
     connect(startPattenAction, &QAction::triggered, this, [&]() {
-        intervals_ = patternToIntervals(settings_.timerPattern());
+        //intervals_ = patternToIntervals(settings_.timerPattern());
+        const auto times = patternToIntervals(settings_.timerPattern());
+        intervals_.clear();
+        auto odd = true;
+        for (auto t : times) {
+            intervals_.emplace_back(t, odd);
+            odd = !odd;
+        }
         startTimer();
     });
 
@@ -58,7 +81,8 @@ void TimerTrack::updateContextMenu() {
                 action->setIcon(category.createIcon());
 
                 connect(action, &QAction::triggered, this, [&, categoryId = category.id_, timerInterval = interval.first]() {
-                    intervals_ = std::vector<std::chrono::milliseconds>{ timerInterval };
+                    intervals_ = decltype(intervals_){
+                        { timerInterval, true }};
                     startTimer(categoryId);
                 });
             }
@@ -74,9 +98,14 @@ void TimerTrack::startTimer(std::optional<int> categoryId) {
         return;
 
     const auto interval = intervals_.front();
-    if (!categoryId)
-        categoryId = settings_.defaultCategoryId();
-    qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.count()).arg(*categoryId).toStdString().c_str());
+    if (!categoryId) {
+        if (interval.second)
+            categoryId = settings_.defaultOddCategoryId();
+        else
+            categoryId = settings_.defaultEvenCategoryId();
+    }
+
+    qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.first.count()).arg(*categoryId).toStdString().c_str());
 
     const auto now = std::chrono::system_clock::now();
     Record r;
@@ -84,12 +113,12 @@ void TimerTrack::startTimer(std::optional<int> categoryId) {
     r.category_ = *categoryId;
     r.status_ = Record::Status::Started;
     r.startTime_ = now;
-    r.plannedTime_ = interval;
+    r.plannedTime_ = interval.first;
     r.passedTime_ = std::chrono::milliseconds{ 0 };
     const auto id = sqlLayer_.addRecord(r);
     activeRecord_ = id;
 
-    timer_.start(interval.count());
+    timer_.start(interval.first.count());
     intervals_.erase(begin(intervals_));
     interruptAction_->setDisabled(!timer_.isActive());
 }

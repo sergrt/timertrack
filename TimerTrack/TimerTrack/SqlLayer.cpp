@@ -42,9 +42,38 @@ void SqlLayer::archiveCategory(int id) const {
         throw std::runtime_error("Error archiving category");
 }
 
+void SqlLayer::unarchiveCategory(int id) const {
+    const QString query = QString(R"(UPDATE Categories SET Archived = "FALSE" WHERE id = %1)").arg(id);
+    const auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error unarchiving category");
+}
+
 bool SqlLayer::isCategoryUsed(int id) const {
     // Check if any record in the log uses category indicated by supplied 'id'.
-    return true;
+    const QString query = QString(R"(SELECT count(*) as Count FROM Records WHERE Category = %1)").arg(id);
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error checking category usage");
+
+    while (result.next())
+        return result.value("Count").toInt() != 0;
+
+    assert("Cannot be here");
+    return false;
+}
+
+bool SqlLayer::isCategoryArchived(int id) const {
+    const QString query = QString(R"(SELECT * FROM Categories WHERE Id = %1)").arg(id);
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error checking category usage");
+
+    while (result.next())
+        return result.value("Archived").toBool() == true;
+
+    assert("Cannot be here");
+    return false;
 }
 
 void SqlLayer::addCategory(const Category& c) const {
@@ -52,6 +81,13 @@ void SqlLayer::addCategory(const Category& c) const {
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error adding category");
+}
+
+void SqlLayer::updateCategory(int id, const QString& name, const QColor& color) const {
+    const QString query = QString(R"(UPDATE Categories SET Name = "%1", Color = "%2" WHERE Id = %3)").arg(name).arg(color.name()).arg(id);
+    const auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error updating category");
 }
 
 QString toSqlTime(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
@@ -84,9 +120,9 @@ std::vector<Record> SqlLayer::readRecords() const {
     static const QString query = "SELECT * FROM Records ORDER BY id";
     auto result = database_.exec(query);
 
-    if (result.lastError().isValid()) {
+    if (result.lastError().isValid())
         throw std::runtime_error("Error obtaining records");
-    }
+
     std::vector<Record> res;
     while (result.next()) {
         Record r;
@@ -122,4 +158,17 @@ void SqlLayer::interruptRecord(int id) const {
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error finishing record");
+}
+
+bool SqlLayer::checkIdIsLastNotArchived(int id) const {
+    const QString query = QString(R"(SELECT count(*) as Count FROM Categories WHERE Id != %1 and Archived != "TRUE")").arg(id);
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error checking category usage");
+
+    while (result.next())
+        return result.value("Count").toInt() == 0;
+
+    assert("Cannot be here");
+    return true;
 }

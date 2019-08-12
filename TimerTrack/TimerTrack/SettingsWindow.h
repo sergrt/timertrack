@@ -22,6 +22,7 @@ private:
     void updateUiToSettings() const;
     void setupUiSettingsHandlers();
     void updateCategories() const;
+    void selectCategoryInListById(int id) const;
 signals:
     void contextMenuChanged();
 };
