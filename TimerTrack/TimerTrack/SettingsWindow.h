@@ -27,6 +27,7 @@ private:
 
 signals:
     void contextMenuChanged() const;
+    void categoriesChanged() const;
 
 public slots:
     void browseSoundFile();

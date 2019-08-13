@@ -74,3 +74,27 @@ std::vector<std::chrono::milliseconds> patternToIntervals(const QString& entries
     }
     return res;
 }
+
+QString intervalToStr(std::chrono::milliseconds interval) {
+    // format is hh:mm:ss
+    auto s = interval.count() / 1000;
+    auto hoursPart = s / 60 / 60;
+    s = s - hoursPart * 60;
+    auto minutesPart = s / 60;
+    s = s - minutesPart * 60;
+    const auto secondsPart = s;
+
+    // Case - 1 hour represented as 60:00
+    if (hoursPart == 1 && minutesPart == 0 && secondsPart == 0) {
+        minutesPart = 60;
+        hoursPart = 0;
+    }
+
+    QString res;
+    if (hoursPart != 0)
+        res += QString("%1:").arg(hoursPart, 2, 10, QChar('0'));
+
+    res += QString("%1:%2").arg(minutesPart, 2, 10, QChar('0')).arg(secondsPart, 2, 10, QChar('0'));
+
+    return res;
+}

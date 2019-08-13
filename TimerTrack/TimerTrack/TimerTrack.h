@@ -29,8 +29,9 @@ private:
 
     using IntervalOddEven = std::pair<std::chrono::milliseconds, bool>;
     std::vector<IntervalOddEven> intervals_; //TODO: consider queue
-    void startTimer(std::optional<int> categoryId = std::nullopt);
+    void startNextInterval(std::optional<int> categoryId = std::nullopt);
     QTimer timer_;
+    QTimer labelTimer_;
     std::optional<int> activeRecord_;
     std::unique_ptr<QAction> interruptAction_;
     QSystemTrayIcon trayIcon_;
@@ -42,11 +43,15 @@ private:
     void stopTimer();
     void startTimer(std::chrono::milliseconds interval, int recordId);
 protected:
-    void closeEvent(QCloseEvent* event) override;
+    void changeEvent(QEvent *e) override;
+    void mousePressEvent(QMouseEvent *evt) override;
+    void mouseMoveEvent(QMouseEvent *evt) override;
+    QPoint localMousePos_; // position inside window to calculate offset
 
 public slots:
     void updateContextMenu();
     void interruptTimer();
     void timerFinished();
     void startTimerPattern();
+    void updateLabel() const;
 };

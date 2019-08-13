@@ -4,6 +4,8 @@
 
 extern const QString restingCategoryRole = "Resting";
 extern const QString defaultCategoryRole = "Default";
+extern const int pomodoroStatusCompleted = 1;
+extern const int pomodoroStatusInterrupted = 2;
 
 SqlLayer::SqlLayer() {
     database_.setDatabaseName("statistics.sqlite");
@@ -197,11 +199,13 @@ bool SqlLayer::isCategoryPersistent(int id) const {
     return true;
 }
 
-std::vector<std::pair<int, int>> SqlLayer::getCompletedPomodoros(const std::vector<int>& categories,
-                                                                 const QDateTime& from,
-                                                                 const QDateTime& till) const {
+std::vector<std::pair<SecondsSinceEpoch, int>> SqlLayer::getCompletedRecords(const std::vector<int>& categories,
+                                                                             const QDateTime& from,
+                                                                             const QDateTime& till) const {
+    std::vector<std::pair<SecondsSinceEpoch, int>> res;
+
     if (categories.empty())
-        return std::vector<std::pair<int, int>>();
+        return res;
 
     auto categoriesStr = QString();
     for (const auto c : categories)
@@ -222,14 +226,49 @@ std::vector<std::pair<int, int>> SqlLayer::getCompletedPomodoros(const std::vect
         .arg(till.toSecsSinceEpoch())
         .arg(categoriesStr);
 
-    std::vector<std::pair<int, int>> res;
-
     auto result = database_.exec(query);
     if (result.lastError().isValid())
         throw std::runtime_error("Error getting statistics data");
 
     while (result.next())
-        res.emplace_back(result.value("Date").toInt(), result.value("Count").toInt());
+        res.emplace_back(result.value("Date").toLongLong(), result.value("Count").toInt());
+
+    return res;
+}
+
+int SqlLayer::getCompletedRecordsCount(const std::vector<int>& categories,
+                                       const QDateTime& from,
+                                       const QDateTime& till,
+                                       int recordStatus) const {
+    if (categories.empty())
+        return 0;
+
+    auto categoriesStr = QString();
+    for (const auto c : categories)
+        categoriesStr += QString("%1").arg(c) + ",";
+
+    categoriesStr.remove(categoriesStr.size() - 1, 1);
+
+    const auto query =
+        QString(R"(SELECT
+                      Count(*) as Count
+                  FROM Records
+                  WHERE StartTime >= '%1' AND StartTime <='%2'
+                  AND Category IN (%3)
+                  AND Status = %4)")
+        .arg(from.toSecsSinceEpoch())
+        .arg(till.toSecsSinceEpoch())
+        .arg(categoriesStr)
+        .arg(recordStatus);
+
+    int res{0};
+
+    auto result = database_.exec(query);
+    if (result.lastError().isValid())
+        throw std::runtime_error("Error getting records count");
+
+    while (result.next())
+        res = result.value("Count").toInt();
 
     return res;
 }

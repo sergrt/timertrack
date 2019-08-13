@@ -7,6 +7,8 @@ class Record;
 //extern const QString restingCategoryRole;
 //extern const QString defaultCategoryRole;
 
+using SecondsSinceEpoch = qint64;
+
 class SqlLayer {
 public:
     SqlLayer();
@@ -26,9 +28,13 @@ public:
     int restingCategoryId() const;
     bool isCategoryPersistent(int id) const;
 
-    std::vector<std::pair<int, int>> getCompletedPomodoros(const std::vector<int>& categories,
-                                                           const QDateTime& from,
-                                                           const QDateTime& till) const;
+    std::vector<std::pair<SecondsSinceEpoch, int>> getCompletedRecords(const std::vector<int>& categories,
+                                                                       const QDateTime& from,
+                                                                       const QDateTime& till) const;
+    int getCompletedRecordsCount(const std::vector<int>& categories,
+                                 const QDateTime& from,
+                                 const QDateTime& till,
+                                 int recordStatus) const;
 private:
     QSqlDatabase database_ = QSqlDatabase::addDatabase("QSQLITE");
 };

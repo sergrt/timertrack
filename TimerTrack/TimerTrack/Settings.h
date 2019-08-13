@@ -31,6 +31,15 @@ public:
     QString soundFileName() const;
     void setSoundFileName(const QString& fileName);
 
+    int width() const;
+    int height() const;
+    QString stylesheet() const;
+
+    QPoint pos() const;
+    void setPos(const QPoint& p);
+
+    bool alwaysOnTop() const;
+
 private:
     static const QString settingsFileName;
 
@@ -39,4 +48,28 @@ private:
     QString soundFileName_;
     int defaultCategoryId_ = 0;
     QString contextMenuEntries_;
+    int width_ = 100;
+    int height_ = 40;
+    int posX_ = 0;
+    int posY_ = 0;
+    QString stylesheet_;
+    bool alwaysOnTop_ = true;
+    /*
+    QString stylesheet_ = R"(
+       * {
+font-family: Arial;
+font-size: 20pt;
+}
+
+QFrame{
+    margin: 2px;
+}
+QLabel {
+    font-family: Arial;
+}
+QToolButton {
+    background-color: rgba( 255, 255, 255, 0% );
+}
+                        )";
+    */
 };

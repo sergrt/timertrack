@@ -143,6 +143,7 @@ void SettingsWindow::addCategory() const {
     reloadCategories();
     updateUiToSettings();
     selectCategoryInListById(id);
+    emit categoriesChanged();
 }
 
 void SettingsWindow::activateCategory() const {
@@ -153,6 +154,7 @@ void SettingsWindow::activateCategory() const {
             reloadCategories();
             updateUiToSettings();
             selectCategoryInListById(id);
+            emit categoriesChanged();
         }
     }
 }
@@ -164,6 +166,7 @@ void SettingsWindow::updateCategory() const {
         reloadCategories();
         updateUiToSettings();
         selectCategoryInListById(id);
+        emit categoriesChanged();
     }
 }
 
@@ -186,6 +189,7 @@ void SettingsWindow::deleteCategory() const {
             reloadCategories();
             updateUiToSettings();
             selectCategoryInListById(id); // selecting deleted id should produce no selection
+            emit categoriesChanged();
         }
     }
 }

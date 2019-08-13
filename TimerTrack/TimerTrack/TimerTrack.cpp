@@ -3,24 +3,41 @@
 #include "Intervals.h"
 #include "Record.h"
 
+static const auto defaultTimerLabelText = QString("--:--");
+
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent),
     settingsWindow_(sqlLayer_, settings_),
     statisticsWindow_(sqlLayer_) {
 
     ui.setupUi(this);
+    ui.timerLabel->setText(defaultTimerLabelText);
     setupTrayIcon();
 
+    this->setWindowFlags(this->windowFlags() | Qt::Tool | Qt::FramelessWindowHint);
+    this->setWindowFlag(Qt::WindowStaysOnTopHint, settings_.alwaysOnTop());
+
     connect(&settingsWindow_, &SettingsWindow::contextMenuChanged, this, &TimerTrack::updateContextMenu);
+    this->resize(settings_.width(), settings_.height());
+    this->move(settings_.pos());
+    this->setStyleSheet(settings_.stylesheet());
+    
 
     // Context menu
     updateContextMenu();
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QMainWindow::customContextMenuRequested, this, [&](const QPoint& p) { popupMenu_.exec(mapToGlobal(p)); });
 
+    connect(&settingsWindow_, &SettingsWindow::categoriesChanged, &statisticsWindow_, &StatisticsWindow::categoriesChanged);
+
+    connect(ui.close, &QPushButton::clicked, this, [&]() {hide();});
+
     // Timer
     timer_.setSingleShot(true);
     connect(&timer_, &QTimer::timeout, this, &TimerTrack::timerFinished);
+
+    labelTimer_.setInterval(1000);
+    connect(&labelTimer_, &QTimer::timeout, this, &TimerTrack::updateLabel);
 }
 
 TimerTrack::~TimerTrack() {
@@ -35,17 +52,31 @@ void TimerTrack::setupTrayIcon() {
     connect(&trayIcon_, &QSystemTrayIcon::activated, this, &TimerTrack::iconActivated);
 }
 
-void TimerTrack::closeEvent(QCloseEvent* event) {
-    event->ignore();
-    hide();
+void TimerTrack::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::WindowStateChange) {
+        if (isMinimized()) {
+            hide();
+            event->ignore();
+        } else {
+            event->accept();
+        }
+    }
+    QMainWindow::changeEvent(event);
 }
 
 void TimerTrack::iconActivated(QSystemTrayIcon::ActivationReason reason) {
-    if (reason == QSystemTrayIcon::Trigger)
-        this->setVisible(!this->isVisible());
+    if (reason == QSystemTrayIcon::DoubleClick) {
+        if (isHidden())
+            show();
+        else
+            hide();
+    }
 }
 
 void TimerTrack::startTimer(std::chrono::milliseconds interval, int recordId) {
+    ui.timerLabel->setText(intervalToStr(interval));
+    labelTimer_.start();
+
     timer_.start(interval.count());
     activeRecord_ = recordId;
     interruptAction_->setDisabled(false);
@@ -53,6 +84,9 @@ void TimerTrack::startTimer(std::chrono::milliseconds interval, int recordId) {
 
 void TimerTrack::stopTimer() {
     timer_.stop();
+    ui.timerLabel->setText(defaultTimerLabelText);
+
+    labelTimer_.stop();
     activeRecord_.reset();
     interruptAction_->setDisabled(true);
 }
@@ -66,7 +100,7 @@ void TimerTrack::timerFinished() {
     executeFinishActions();
 
     if (!intervals_.empty())
-        startTimer();
+        startNextInterval();
 }
 
 void TimerTrack::executeFinishActions() {
@@ -95,7 +129,7 @@ void TimerTrack::startTimerPattern() {
         intervals_.emplace_back(t, odd);
         odd = !odd;
     }
-    startTimer();
+    startNextInterval();
 }
 
 void TimerTrack::updateContextMenu() {
@@ -119,7 +153,7 @@ void TimerTrack::updateContextMenu() {
                     if (activeRecord_)
                         interruptTimer();
                     intervals_ = decltype(intervals_){{ timerInterval, true }};
-                    startTimer(categoryId);
+                    startNextInterval(categoryId);
                 });
             }
         }
@@ -134,9 +168,13 @@ void TimerTrack::updateContextMenu() {
 
     connect(actionSettings, &QAction::triggered, this, [this]() { settingsWindow_.show(); });
     connect(actionStatistics, &QAction::triggered, this, [this]() { statisticsWindow_.show(); });
+
+    popupMenu_.addSeparator();
+    const auto* actionExit = popupMenu_.addAction("Exit");
+    connect(actionExit, &QAction::triggered, this, [this]() { QApplication::quit(); });
 }
 
-void TimerTrack::startTimer(std::optional<int> categoryId) {
+void TimerTrack::startNextInterval(std::optional<int> categoryId) {
     const auto interval = intervals_.front();
     if (!categoryId)
         categoryId = interval.second ? settings_.defaultCategoryId() : sqlLayer_.restingCategoryId();
@@ -162,4 +200,25 @@ void TimerTrack::interruptTimer() {
 
     sqlLayer_.interruptRecord(*activeRecord_);
     stopTimer();
+}
+
+void TimerTrack::updateLabel() const {
+    if (auto interval = strToInterval(ui.timerLabel->text())) {
+        *interval -= std::chrono::seconds{ 1 };
+        ui.timerLabel->setText(intervalToStr(*interval));
+    }
+}
+
+
+void TimerTrack::mousePressEvent(QMouseEvent *evt) {
+    if (evt->button() == Qt::LeftButton) {
+        localMousePos_ = evt->globalPos() - pos();
+    }
+}
+void TimerTrack::mouseMoveEvent(QMouseEvent *evt) {
+    if (evt->buttons() & Qt::LeftButton) {
+        const auto newPos = evt->globalPos() - localMousePos_;
+        settings_.setPos(newPos);
+        move(newPos);
+    }
 }

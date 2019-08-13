@@ -8,6 +8,8 @@ namespace IniFile {
 // Section names
 static const QString Timer{ "Timer" };
 static const QString ContextMenu{ "ContextMenu" };
+static const QString Window{ "Window" };
+
 // Section structure
 struct Timer {
     static const QString TimerPattern;
@@ -18,6 +20,15 @@ struct Timer {
 
 struct ContextMenu {
     static const QString ContextMenuEntries;
+};
+
+struct Window {
+    static const QString Width;
+    static const QString Height;
+    static const QString PosX;
+    static const QString PosY;
+    static const QString StyleSheet;
+    static const QString AlwaysOnTop;
 };
 
 // Data structures
@@ -35,6 +46,13 @@ const QString Timer::SoundFileName{ "SoundFileName" };
 const QString Timer::DefaultCategoryId{ "DefaultCategoryId" };
 
 const QString ContextMenu::ContextMenuEntries{ "ContextMenuEntries" };
+
+const QString Window::Width{ "Width" };
+const QString Window::Height{ "Height" };
+const QString Window::PosX{ "PosX" };
+const QString Window::PosY{ "PosY" };
+const QString Window::StyleSheet{ "StyleSheet" };
+const QString Window::AlwaysOnTop{ "AlwaysOnTop" };
 
 const QString FinishActions::Popup{ "Popup" };
 const QString FinishActions::Tooltip{ "Tooltip" };
@@ -94,6 +112,15 @@ void Settings::load() {
     if (validateTimeEntries(contextMenuEntries))
         contextMenuEntries_ = contextMenuEntries;
     settings.endGroup();
+
+    settings.beginGroup(IniFile::Window);
+    width_ = settings.value(IniFile::Window::Width).toInt();
+    height_ = settings.value(IniFile::Window::Height).toInt();
+    posX_ = settings.value(IniFile::Window::PosX).toInt();
+    posY_ = settings.value(IniFile::Window::PosY).toInt();
+    stylesheet_ = settings.value(IniFile::Window::StyleSheet).toString();
+    alwaysOnTop_ = settings.value(IniFile::Window::AlwaysOnTop).toBool();
+    settings.endGroup();
 }
 
 void Settings::save() const {
@@ -115,6 +142,11 @@ void Settings::save() const {
 
     settings.beginGroup(IniFile::ContextMenu);
     settings.setValue(IniFile::ContextMenu::ContextMenuEntries, contextMenuEntries_);
+    settings.endGroup();
+
+    settings.beginGroup(IniFile::Window);
+    settings.setValue(IniFile::Window::PosX, posX_);
+    settings.setValue(IniFile::Window::PosY, posY_);
     settings.endGroup();
 }
 
@@ -164,4 +196,47 @@ QString Settings::contextMenuEntries() const {
 void Settings::setContextMenuEntries(const QString& entries) {
     contextMenuEntries_ = entries;
     save();
+}
+
+int Settings::width() const {
+    return width_;
+}
+
+int Settings::height() const {
+    return height_;
+}
+
+QString Settings::stylesheet() const {
+    //return stylesheet_;
+    return R"(
+    * {
+        font-family: Arial;
+        font-size: 16px;
+    }
+    QFrame {
+        margin: 1px;
+    }
+    QLabel {
+        font-family: Arial;
+    }
+    QToolButton{
+        font-size: 10px;
+        color: gray;
+        background-color: rgba(255, 255, 255, 0%);
+    }
+)";
+}
+
+QPoint Settings::pos() const {
+    return QPoint(posX_, posY_);
+}
+
+void Settings::setPos(const QPoint& p) {
+    posX_ = p.x();
+    posY_ = p.y();
+    save();
+}
+
+bool Settings::alwaysOnTop() const {
+    return alwaysOnTop_;
 }
