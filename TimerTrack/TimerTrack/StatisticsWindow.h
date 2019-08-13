@@ -38,6 +38,9 @@ private:
     int getLastMonthCount(const Category& category, int status) const;
     int getCurYearCount(const Category& category, int status) const;
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 public slots:
     void dateChanged() const;
     void categoriesChanged();

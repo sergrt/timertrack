@@ -107,8 +107,13 @@ void TimerTrack::executeFinishActions() {
     const auto finishActions = settings_.finishActions();
     for (const auto& a : finishActions) {
         if (a == Settings::FinishAction::Popup) {
-            QMessageBox box(QMessageBox::Information, "Finished", "Interval finished", QMessageBox::NoButton, this);
-            box.exec();
+            auto* m = new QMessageBox(QDesktopWidget().screen());
+            m->setFont(this->font());
+            m->setAttribute(Qt::WA_DeleteOnClose, true);
+            m->setWindowFlags(m->windowFlags() | Qt::WindowStaysOnTopHint);
+            m->setWindowTitle("Finished");
+            m->setText("Interval finished");
+            m->show();
         } else if (a == Settings::FinishAction::Tooltip) {
             trayIcon_.showMessage("Finished", "Interval finished");
         } else if (a == Settings::FinishAction::Sound) {

@@ -219,3 +219,7 @@ void SettingsWindow::categoryListSelChanged() const {
     }
 }
 
+void SettingsWindow::closeEvent(QCloseEvent* event) {
+    hide();
+    event->ignore();
+}

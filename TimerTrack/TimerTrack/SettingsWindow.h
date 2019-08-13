@@ -25,6 +25,9 @@ private:
     void reloadCategories() const;
     void selectCategoryInListById(int id) const;
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 signals:
     void contextMenuChanged() const;
     void categoriesChanged() const;
