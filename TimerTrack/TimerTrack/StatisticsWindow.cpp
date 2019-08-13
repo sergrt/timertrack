@@ -290,8 +290,3 @@ int StatisticsWindow::getCurYearCount(const Category& category, int status) cons
     const auto till = QDateTime(QDateTime::currentDateTime().date());
     return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
 }
-
-void StatisticsWindow::closeEvent(QCloseEvent* event) {
-    hide();
-    event->ignore();
-}

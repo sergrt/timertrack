@@ -218,8 +218,3 @@ void SettingsWindow::categoryListSelChanged() const {
         ui.activateCategory->setEnabled(false);
     }
 }
-
-void SettingsWindow::closeEvent(QCloseEvent* event) {
-    hide();
-    event->ignore();
-}
