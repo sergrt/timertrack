@@ -3,37 +3,21 @@
 #include "Intervals.h"
 
 const QString Settings::settingsFileName{ "settings.ini" };
-/*
 static const auto defaultStyle = QString(R"(
 * {
     font-family: Arial;
     font-size: 16px;
 }
-QFrame {
-    margin: 1px;
+#timerTrackWindow {
+    background-color: rgba(200, 200, 200, 100%);
 }
-QLabel {
+#frame {
+    margin: 0px;
+}
+#timerLabel {
     font-family: Arial;
 }
-QToolButton{
-    font-size: 10px;
-    color: gray;
-    background-color: rgba(255, 255, 255, 0%);
-}
-)");
-*/
-static const auto defaultStyle = QString(R"(
-* {
-    font-family: Arial;
-    font-size: 16px;
-}
-QFrame {
-    margin: 1px;
-}
-QLabel {
-    font-family: Arial;
-}
-QToolButton{
+#closeButton {
     font-size: 10px;
     color: gray;
     background-color: rgba(255, 255, 255, 0%);
@@ -41,6 +25,7 @@ QToolButton{
 )");
 
 namespace IniFile {
+
 // Section names
 static const QString Timer{ "Timer" };
 static const QString ContextMenu{ "ContextMenu" };
@@ -243,8 +228,7 @@ int Settings::height() const {
 }
 
 QString Settings::stylesheet() const {
-    //return stylesheet_;
-    return defaultStyle;
+    return stylesheet_;
 }
 
 QPoint Settings::pos() const {

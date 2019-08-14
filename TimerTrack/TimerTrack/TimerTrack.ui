@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TimerTrackClass</class>
- <widget class="QMainWindow" name="TimerTrackClass">
+ <class>timerTrackWindow</class>
+ <widget class="QMainWindow" name="timerTrackWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -59,7 +59,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QToolButton" name="close">
+        <widget class="QToolButton" name="closeButton">
          <property name="styleSheet">
           <string notr="true"/>
          </property>

@@ -20,7 +20,7 @@ public:
     ~TimerTrack();
 
 private:
-    Ui::TimerTrackClass ui;
+    Ui::timerTrackWindow ui;
     SqlLayer sqlLayer_;
     Settings settings_;
     SettingsWindow settingsWindow_;

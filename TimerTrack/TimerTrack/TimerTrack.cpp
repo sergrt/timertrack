@@ -30,7 +30,7 @@ TimerTrack::TimerTrack(QWidget *parent)
     connect(&settingsWindow_, &SettingsWindow::categoriesChanged, &statisticsWindow_, &StatisticsWindow::categoriesChanged);
     connect(&settingsWindow_, &SettingsWindow::categoriesChanged, this, &TimerTrack::updateContextMenu);
 
-    connect(ui.close, &QPushButton::clicked, this, [&]() {hide();});
+    connect(ui.closeButton, &QPushButton::clicked, this, [&]() {hide();});
 
     // Timer
     timer_.setSingleShot(true);
