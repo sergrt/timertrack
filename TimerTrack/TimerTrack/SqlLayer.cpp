@@ -2,16 +2,53 @@
 #include "SqlLayer.h"
 #include "Record.h"
 
+const auto databaseName = QString("timertrack.sqlite");
+
 extern const QString restingCategoryRole = "Resting";
 extern const QString defaultCategoryRole = "Default";
 extern const int pomodoroStatusCompleted = 1;
 extern const int pomodoroStatusInterrupted = 2;
 
 SqlLayer::SqlLayer() {
-    database_.setDatabaseName("statistics.sqlite");
+    bool needCreateStructure = !QFile::exists(databaseName);
+    database_.setDatabaseName(databaseName);
     if (!database_.open())
         throw std::runtime_error("Error open database");
+
+    if (needCreateStructure)
+        createDatabase();
 }
+
+void SqlLayer::createDatabase() {
+    static const auto createQuery = QString(R"(
+DROP TABLE IF EXISTS Categories;
+CREATE TABLE Categories (Id INTEGER PRIMARY KEY ASC AUTOINCREMENT NOT NULL, Name varchar NOT NULL, Color VARCHAR NOT NULL, Archived BOOLEAN NOT NULL, Role VARCHAR);
+INSERT INTO Categories (Id, Name, Color, Archived, Role) VALUES (0, 'Resting', '#4c4c4c', 'False', 'Resting');
+INSERT INTO Categories (Id, Name, Color, Archived, Role) VALUES (1, 'General', '#ff915a', 'False', 'Default');
+
+DROP TABLE IF EXISTS Records;
+CREATE TABLE Records (Id INTEGER PRIMARY KEY NOT NULL, Category INTEGER NOT NULL REFERENCES Categories (Id), Status INTEGER NOT NULL REFERENCES RecordStatuses (Id), StartTime DATETIME NOT NULL, PlannedTime INTEGER NOT NULL, PassedTime INTEGER NOT NULL);
+
+DROP TABLE IF EXISTS RecordStatuses;
+CREATE TABLE RecordStatuses (Id INTEGER PRIMARY KEY NOT NULL, Name VARCHAR NOT NULL);
+INSERT INTO RecordStatuses (Id, Name) VALUES (0, 'Started');
+INSERT INTO RecordStatuses (Id, Name) VALUES (1, 'Finished');
+INSERT INTO RecordStatuses (Id, Name) VALUES (2, 'Interrupted');
+    )");
+
+    const auto statements = createQuery.split("\n");
+    for (auto statement : statements) {
+        statement = statement.trimmed();
+        if (statement.isEmpty())
+            continue;
+        const auto result = database_.exec(statement);
+        if (result.lastError().isValid()) {
+            qDebug(("Error creating database: " + result.lastError().text()).toStdString().c_str());
+            throw std::runtime_error(("Error creating database: " + result.lastError().text()).toStdString());
+        }
+    }
+}
+
 
 std::vector<Category> SqlLayer::readCategories() const {
     static const auto query = QString("SELECT * FROM Categories ORDER BY id");

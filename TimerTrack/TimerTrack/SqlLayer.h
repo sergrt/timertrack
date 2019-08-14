@@ -35,6 +35,8 @@ public:
                                  const QDateTime& from,
                                  const QDateTime& till,
                                  int recordStatus) const;
+
+    void createDatabase();
 private:
     QSqlDatabase database_ = QSqlDatabase::addDatabase("QSQLITE");
 };

@@ -54,22 +54,4 @@ private:
     int posY_ = 0;
     QString stylesheet_;
     bool alwaysOnTop_ = true;
-    /*
-    QString stylesheet_ = R"(
-       * {
-font-family: Arial;
-font-size: 20pt;
-}
-
-QFrame{
-    margin: 2px;
-}
-QLabel {
-    font-family: Arial;
-}
-QToolButton {
-    background-color: rgba( 255, 255, 255, 0% );
-}
-                        )";
-    */
 };

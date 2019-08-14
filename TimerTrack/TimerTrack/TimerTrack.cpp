@@ -45,7 +45,8 @@ TimerTrack::~TimerTrack() {
 }
 
 void TimerTrack::setupTrayIcon() {
-    trayIcon_.setIcon(this->style()->standardIcon(QStyle::SP_ComputerIcon));
+    //trayIcon_.setIcon(this->style()->standardIcon(QStyle::SP_ComputerIcon));
+    trayIcon_.setIcon(QIcon(":/TimerTrack/stopwatch.png"));
     trayIcon_.setToolTip("TimerTrack");
     trayIcon_.setContextMenu(&popupMenu_);
     trayIcon_.show();
@@ -108,9 +109,10 @@ void TimerTrack::executeFinishActions() {
     for (const auto& a : finishActions) {
         if (a == Settings::FinishAction::Popup) {
             auto* m = new QMessageBox(QDesktopWidget().screen());
+            m->setIcon(QMessageBox::Information);
             m->setFont(this->font());
             m->setAttribute(Qt::WA_DeleteOnClose, true);
-            m->setWindowFlags(m->windowFlags() | Qt::WindowStaysOnTopHint);
+            m->setWindowFlags(m->windowFlags() | Qt::WindowStaysOnTopHint | Qt::Tool);
             m->setWindowTitle("Finished");
             m->setText("Interval finished");
             m->show();
@@ -139,6 +141,7 @@ void TimerTrack::startTimerPattern() {
 
 void TimerTrack::updateContextMenu() {
     popupMenu_.clear();
+    interruptAction_ = nullptr;
 
     const auto* startPattenAction = popupMenu_.addAction("Start pattern");
     connect(startPattenAction, &QAction::triggered, this, &TimerTrack::startTimerPattern);
@@ -163,8 +166,8 @@ void TimerTrack::updateContextMenu() {
             }
         }
     }
-    interruptAction_.reset(popupMenu_.addAction("Interrupt current timer"));
-    connect(interruptAction_.get(), &QAction::triggered, this, &TimerTrack::interruptTimer);
+    interruptAction_ = popupMenu_.addAction("Interrupt current timer");
+    connect(interruptAction_, &QAction::triggered, this, &TimerTrack::interruptTimer);
     interruptAction_->setDisabled(!timer_.isActive());
 
     popupMenu_.addSeparator();

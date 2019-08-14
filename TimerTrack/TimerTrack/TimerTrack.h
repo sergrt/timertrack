@@ -33,7 +33,7 @@ private:
     QTimer timer_;
     QTimer labelTimer_;
     std::optional<int> activeRecord_;
-    std::unique_ptr<QAction> interruptAction_;
+    QAction* interruptAction_ = nullptr;
     QSystemTrayIcon trayIcon_;
     QMediaPlayer mediaPlayer_;
 

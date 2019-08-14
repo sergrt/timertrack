@@ -85,6 +85,9 @@
       <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
       <OutputFile>.\GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
     </QtRcc>
+    <PostBuildEvent>
+      <Command>$(QTDIR)\bin\windeployqt.exe $(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -121,6 +124,9 @@
       <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
       <OutputFile>.\GeneratedFiles\qrc_%(Filename).cpp</OutputFile>
     </QtRcc>
+    <PostBuildEvent>
+      <Command>$(QTDIR)\bin\windeployqt.exe $(SolutionDir)$(Platform)\$(Configuration)\$(TargetName).exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Category.cpp" />
@@ -141,6 +147,7 @@
     <ClInclude Include="Category.h" />
     <ClInclude Include="Intervals.h" />
     <ClInclude Include="Record.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SqlLayer.h" />
     <ClInclude Include="StrongType.h" />
@@ -162,6 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="TimerTrack.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TimerTrack.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

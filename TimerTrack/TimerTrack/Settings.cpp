@@ -3,6 +3,42 @@
 #include "Intervals.h"
 
 const QString Settings::settingsFileName{ "settings.ini" };
+/*
+static const auto defaultStyle = QString(R"(
+* {
+    font-family: Arial;
+    font-size: 16px;
+}
+QFrame {
+    margin: 1px;
+}
+QLabel {
+    font-family: Arial;
+}
+QToolButton{
+    font-size: 10px;
+    color: gray;
+    background-color: rgba(255, 255, 255, 0%);
+}
+)");
+*/
+static const auto defaultStyle = QString(R"(
+* {
+    font-family: Arial;
+    font-size: 16px;
+}
+QFrame {
+    margin: 1px;
+}
+QLabel {
+    font-family: Arial;
+}
+QToolButton{
+    font-size: 10px;
+    color: gray;
+    background-color: rgba(255, 255, 255, 0%);
+}
+)");
 
 namespace IniFile {
 // Section names
@@ -208,23 +244,7 @@ int Settings::height() const {
 
 QString Settings::stylesheet() const {
     //return stylesheet_;
-    return R"(
-    * {
-        font-family: Arial;
-        font-size: 16px;
-    }
-    QFrame {
-        margin: 1px;
-    }
-    QLabel {
-        font-family: Arial;
-    }
-    QToolButton{
-        font-size: 10px;
-        color: gray;
-        background-color: rgba(255, 255, 255, 0%);
-    }
-)";
+    return defaultStyle;
 }
 
 QPoint Settings::pos() const {

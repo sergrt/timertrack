@@ -83,6 +83,9 @@
     <ClInclude Include="StrongType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="TimerTrack.h">
@@ -110,5 +113,8 @@
     <QtRcc Include="TimerTrack.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TimerTrack.rc" />
   </ItemGroup>
 </Project>
