@@ -45,7 +45,6 @@ TimerTrack::~TimerTrack() {
 }
 
 void TimerTrack::setupTrayIcon() {
-    //trayIcon_.setIcon(this->style()->standardIcon(QStyle::SP_ComputerIcon));
     trayIcon_.setIcon(QIcon(":/TimerTrack/stopwatch.png"));
     trayIcon_.setToolTip("TimerTrack");
     trayIcon_.setContextMenu(&popupMenu_);
