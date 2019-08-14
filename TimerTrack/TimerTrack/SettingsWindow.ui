@@ -91,7 +91,7 @@
           <item row="0" column="0">
            <widget class="QCheckBox" name="finishActionPopup">
             <property name="text">
-             <string>Show pop up window</string>
+             <string>Show pop-up window</string>
             </property>
            </widget>
           </item>
