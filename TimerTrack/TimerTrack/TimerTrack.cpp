@@ -28,6 +28,7 @@ TimerTrack::TimerTrack(QWidget *parent)
     connect(this, &QMainWindow::customContextMenuRequested, this, [&](const QPoint& p) { popupMenu_.exec(mapToGlobal(p)); });
 
     connect(&settingsWindow_, &SettingsWindow::categoriesChanged, &statisticsWindow_, &StatisticsWindow::categoriesChanged);
+    connect(&settingsWindow_, &SettingsWindow::categoriesChanged, this, &TimerTrack::updateContextMenu);
 
     connect(ui.close, &QPushButton::clicked, this, [&]() {hide();});
 

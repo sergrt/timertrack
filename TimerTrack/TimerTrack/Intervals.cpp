@@ -19,12 +19,12 @@ std::optional<std::chrono::milliseconds> strToInterval(QString str) {
         std::chrono::milliseconds res{ 0 };
         if (str.indexOf("h") != -1) {
             const auto s = str.mid(0, str.indexOf("h"));
-            str = str.right(str.indexOf("h") + 1);
+            str = str.right(str.size() - str.indexOf("h") - 1);
             res += std::chrono::milliseconds{ s.toInt() * 60 * 60 * 1000 };
         }
         if (str.indexOf("m") != -1) {
             const auto s = str.mid(0, str.indexOf("m"));
-            str = str.right(str.indexOf("m") + 1);
+            str = str.right(str.size() - str.indexOf("m") - 1);
             res += std::chrono::milliseconds{ s.toInt() * 60 * 1000 };
         }
         if (str.indexOf("s") != -1) {
@@ -79,7 +79,7 @@ QString intervalToStr(std::chrono::milliseconds interval) {
     // format is hh:mm:ss
     auto s = interval.count() / 1000;
     auto hoursPart = s / 60 / 60;
-    s = s - hoursPart * 60;
+    s = s - hoursPart * 60 * 60;
     auto minutesPart = s / 60;
     s = s - minutesPart * 60;
     const auto secondsPart = s;
