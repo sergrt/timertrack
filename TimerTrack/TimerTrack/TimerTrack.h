@@ -52,6 +52,6 @@ public slots:
     void updateContextMenu();
     void interruptTimer();
     void timerFinished();
-    void startTimerPattern();
+    void startTimerSequence();
     void updateLabel() const;
 };

@@ -19,7 +19,7 @@ SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *
 SettingsWindow::~SettingsWindow() = default;
 
 void SettingsWindow::updateUiToSettings() const {
-    ui.timerPattern->setText(settings_.timerPattern());
+    ui.timerSequence->setText(settings_.timerSequence());
     const auto finishActions = settings_.finishActions();
     ui.finishActionPopup->setChecked(finishActions.find(Settings::FinishAction::Popup) != finishActions.end());
     ui.finishActionTooltip->setChecked(finishActions.find(Settings::FinishAction::Tooltip) != finishActions.end());
@@ -45,7 +45,7 @@ void paintToContentValidity(QLineEdit& lineEdit) {
 }
 
 void SettingsWindow::setupUiSettingsHandlers() {
-    connect(ui.timerPattern, &QLineEdit::textChanged, this, &SettingsWindow::timerPatternChanged);
+    connect(ui.timerSequence, &QLineEdit::textChanged, this, &SettingsWindow::timerSequenceChanged);
     connect(ui.defaultCategoryId, &QComboBox::currentTextChanged, this, [&]() {
         settings_.setDefaultCategoryId(ui.defaultCategoryId->currentData().toInt());
     });
@@ -111,11 +111,11 @@ QString SettingsWindow::getContextMenuEntries() const {
     return settings_.contextMenuEntries();
 }
 
-void SettingsWindow::timerPatternChanged() const {
-    paintToContentValidity(*ui.timerPattern);
-    const auto text = ui.timerPattern->text();
+void SettingsWindow::timerSequenceChanged() const {
+    paintToContentValidity(*ui.timerSequence);
+    const auto text = ui.timerSequence->text();
     if (validateTimeEntries(text))
-        settings_.setTimerPattern(text);
+        settings_.setTimerSequence(text);
 }
 
 void SettingsWindow::browseSoundFile() {

@@ -124,26 +124,27 @@ void TimerTrack::executeFinishActions() {
     }
 }
 
-void TimerTrack::startTimerPattern() {
+void TimerTrack::startTimerSequence() {
     if (activeRecord_)
         interruptTimer();
 
-    const auto times = patternToIntervals(settings_.timerPattern());
+    const auto times = sequenceToIntervals(settings_.timerSequence());
     intervals_.clear();
     auto odd = true;
     for (auto t : times) {
         intervals_.emplace_back(t, odd);
         odd = !odd;
     }
-    startNextInterval();
+    if (!intervals_.empty())
+        startNextInterval();
 }
 
 void TimerTrack::updateContextMenu() {
     popupMenu_.clear();
     interruptAction_ = nullptr;
 
-    const auto* startPattenAction = popupMenu_.addAction("Start pattern");
-    connect(startPattenAction, &QAction::triggered, this, &TimerTrack::startTimerPattern);
+    const auto* startPattenAction = popupMenu_.addAction("Start sequence");
+    connect(startPattenAction, &QAction::triggered, this, &TimerTrack::startTimerSequence);
 
     const auto contextMenuIntervals = entriesToIntervals(settingsWindow_.getContextMenuEntries());
     const auto categories = sqlLayer_.readCategories();

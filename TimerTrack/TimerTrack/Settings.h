@@ -15,8 +15,8 @@ public:
     void load();
     void save() const;
 
-    QString timerPattern() const;
-    void setTimerPattern(const QString& pattern);
+    QString timerSequence() const;
+    void setTimerSequence(const QString& sequence);
 
     std::set<FinishAction> finishActions() const;
     void updateFinishAction(FinishAction action, bool enabled);
@@ -43,7 +43,7 @@ public:
 private:
     static const QString settingsFileName;
 
-    QString timersPattern_;
+    QString timersSequence_;
     std::set<FinishAction> finishActions_;
     QString soundFileName_;
     int defaultCategoryId_ = 0;

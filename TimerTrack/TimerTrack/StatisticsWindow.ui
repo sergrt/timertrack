@@ -11,9 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>StatisticsWindow</string>
+   <string>TimerTrack Statistics</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="1,0">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0" columnstretch="1,0">
    <item row="0" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">

@@ -31,7 +31,7 @@ signals:
 
 public slots:
     void browseSoundFile();
-    void timerPatternChanged() const;
+    void timerSequenceChanged() const;
     void contextMenuItemsChanged() const;
     void addCategory() const;
     void activateCategory() const;

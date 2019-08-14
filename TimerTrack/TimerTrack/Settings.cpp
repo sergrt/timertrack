@@ -33,7 +33,7 @@ static const QString Window{ "Window" };
 
 // Section structure
 struct Timer {
-    static const QString TimerPattern;
+    static const QString TimerSequence;
     static const QString FinishActions;
     static const QString SoundFileName;
     static const QString DefaultCategoryId;
@@ -61,7 +61,7 @@ struct FinishActions {
 };
 
 // Definitions
-const QString Timer::TimerPattern{ "TimerPattern" };
+const QString Timer::TimerSequence{ "TimerSequence" };
 const QString Timer::FinishActions{ "FinishActions" };
 const QString Timer::SoundFileName{ "SoundFileName" };
 const QString Timer::DefaultCategoryId{ "DefaultCategoryId" };
@@ -113,9 +113,9 @@ void Settings::load() {
     QSettings settings(settingsFileName, QSettings::Format::IniFormat);
 
     settings.beginGroup(IniFile::Timer);
-    const auto timersPattern = settings.value(IniFile::Timer::TimerPattern).toString();
-    if (validateTimeEntries(timersPattern))
-        timersPattern_ = timersPattern;
+    const auto timersSequence = settings.value(IniFile::Timer::TimerSequence).toString();
+    if (validateTimeEntries(timersSequence))
+        timersSequence_ = timersSequence;
 
     finishActions_.clear();
     const auto finishActionsStr = settings.value(IniFile::Timer::FinishActions).toString();
@@ -148,7 +148,7 @@ void Settings::save() const {
     QSettings settings(settingsFileName, QSettings::Format::IniFormat);
 
     settings.beginGroup(IniFile::Timer);
-    settings.setValue(IniFile::Timer::TimerPattern, timersPattern_);
+    settings.setValue(IniFile::Timer::TimerSequence, timersSequence_);
     QString finishActionsStr;
     for (const auto& f : finishActions_)
         finishActionsStr += finishActionToString(f) + IniFile::FinishActions::Delimiter;
@@ -171,12 +171,12 @@ void Settings::save() const {
     settings.endGroup();
 }
 
-QString Settings::timerPattern() const {
-    return timersPattern_;
+QString Settings::timerSequence() const {
+    return timersSequence_;
 }
 
-void Settings::setTimerPattern(const QString& pattern) {
-    timersPattern_ = pattern;
+void Settings::setTimerSequence(const QString& sequence) {
+    timersSequence_ = sequence;
     save();
 }
 

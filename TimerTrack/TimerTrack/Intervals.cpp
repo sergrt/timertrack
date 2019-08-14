@@ -5,8 +5,8 @@
 static const auto regExpHms = QRegExp(R"(^(?!$)(\d+h)?(\d+m)?(\d+s)?$)");
 static const auto regExpColon = QRegExp(R"(^\d{1,2}(:\d{1,2})?(:\d{1,2})?$)");
 
-bool validateTimeEntries(const QString& pattern) {
-    const auto parts = pattern.split(",");
+bool validateTimeEntries(const QString& sequence) {
+    const auto parts = sequence.split(",");
     for (const auto& p : parts) {
         if (regExpHms.indexIn(p) == -1 && regExpColon.indexIn(p) == -1)
             return false;
@@ -64,7 +64,7 @@ std::map<std::chrono::milliseconds, QString> entriesToIntervals(const QString& e
     return res;
 }
 
-std::vector<std::chrono::milliseconds> patternToIntervals(const QString& entries) {
+std::vector<std::chrono::milliseconds> sequenceToIntervals(const QString& entries) {
     const auto items = entries.split(",");
     std::vector<std::chrono::milliseconds> res;
     for (const auto& i : items) {
