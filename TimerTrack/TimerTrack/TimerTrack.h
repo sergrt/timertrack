@@ -43,9 +43,9 @@ private:
     void stopTimer();
     void startTimer(std::chrono::milliseconds interval, int recordId);
 protected:
-    void changeEvent(QEvent *e) override;
-    void mousePressEvent(QMouseEvent *evt) override;
-    void mouseMoveEvent(QMouseEvent *evt) override;
+    void changeEvent(QEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent*event) override;
     QPoint localMousePos_; // position inside window to calculate offset
 
 public slots:

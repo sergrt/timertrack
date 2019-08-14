@@ -3,24 +3,7 @@
 #include "Record.h"
 
 const auto databaseName = QString("timertrack.sqlite");
-
-extern const QString restingCategoryRole = "Resting";
-extern const QString defaultCategoryRole = "Default";
-extern const int pomodoroStatusCompleted = 1;
-extern const int pomodoroStatusInterrupted = 2;
-
-SqlLayer::SqlLayer() {
-    bool needCreateStructure = !QFile::exists(databaseName);
-    database_.setDatabaseName(databaseName);
-    if (!database_.open())
-        throw std::runtime_error("Error open database");
-
-    if (needCreateStructure)
-        createDatabase();
-}
-
-void SqlLayer::createDatabase() {
-    static const auto createQuery = QString(R"(
+static const auto createQuery = QString(R"(
 DROP TABLE IF EXISTS Categories;
 CREATE TABLE Categories (Id INTEGER PRIMARY KEY ASC AUTOINCREMENT NOT NULL, Name varchar NOT NULL, Color VARCHAR NOT NULL, Archived BOOLEAN NOT NULL, Role VARCHAR);
 INSERT INTO Categories (Id, Name, Color, Archived, Role) VALUES (0, 'Resting', '#4c4c4c', 'False', 'Resting');
@@ -34,28 +17,42 @@ CREATE TABLE RecordStatuses (Id INTEGER PRIMARY KEY NOT NULL, Name VARCHAR NOT N
 INSERT INTO RecordStatuses (Id, Name) VALUES (0, 'Started');
 INSERT INTO RecordStatuses (Id, Name) VALUES (1, 'Finished');
 INSERT INTO RecordStatuses (Id, Name) VALUES (2, 'Interrupted');
-    )");
+)");
 
+extern const QString restingCategoryRole = "Resting";
+extern const QString defaultCategoryRole = "Default";
+extern const int pomodoroStatusCompleted = 1;
+extern const int pomodoroStatusInterrupted = 2;
+
+SqlLayer::SqlLayer() {
+    const auto needCreateStructure = !QFile::exists(databaseName);
+
+    database_.setDatabaseName(databaseName);
+    if (!database_.open())
+        throw std::runtime_error("Error open database");
+
+    if (needCreateStructure)
+        createDatabase();
+}
+
+void SqlLayer::createDatabase() {
     const auto statements = createQuery.split("\n");
     for (auto statement : statements) {
         statement = statement.trimmed();
         if (statement.isEmpty())
             continue;
         const auto result = database_.exec(statement);
-        if (result.lastError().isValid()) {
-            qDebug(("Error creating database: " + result.lastError().text()).toStdString().c_str());
+        if (result.lastError().isValid())
             throw std::runtime_error(("Error creating database: " + result.lastError().text()).toStdString());
-        }
     }
 }
-
 
 std::vector<Category> SqlLayer::readCategories() const {
     static const auto query = QString("SELECT * FROM Categories ORDER BY id");
     auto result = database_.exec(query);
 
     if (result.lastError().isValid())
-        throw std::runtime_error("Error obtaining categories");
+        throw std::runtime_error(("Error obtaining categories: " + result.lastError().text()).toStdString());
 
     std::vector<Category> res;
     while (result.next()) {
@@ -75,21 +72,21 @@ void SqlLayer::deleteCategory(int id) const {
     const auto query = QString("DELETE FROM Categories WHERE id = %1").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error deleting category");
+        throw std::runtime_error(("Error deleting category: " + result.lastError().text()).toStdString());
 }
 
 void SqlLayer::archiveCategory(int id) const {
     const auto query = QString(R"(UPDATE Categories SET Archived = "TRUE" WHERE id = %1)").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error archiving category");
+        throw std::runtime_error(("Error archiving category: " + result.lastError().text()).toStdString());
 }
 
 void SqlLayer::unarchiveCategory(int id) const {
     const auto query = QString(R"(UPDATE Categories SET Archived = "FALSE" WHERE id = %1)").arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error unarchiving category");
+        throw std::runtime_error(("Error unarchiving category: " + result.lastError().text()).toStdString());
 }
 
 bool SqlLayer::isCategoryUsed(int id) const {
@@ -97,7 +94,7 @@ bool SqlLayer::isCategoryUsed(int id) const {
     const auto query = QString(R"(SELECT count(*) as Count FROM Records WHERE Category = %1)").arg(id);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error checking category usage");
+        throw std::runtime_error(("Error checking category usage: " + result.lastError().text()).toStdString());
 
     while (result.next())
         return result.value("Count").toInt() != 0;
@@ -110,7 +107,7 @@ bool SqlLayer::isCategoryArchived(int id) const {
     const auto query = QString(R"(SELECT * FROM Categories WHERE Id = %1)").arg(id);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error checking category usage");
+        throw std::runtime_error(("Error checking category usage: " + result.lastError().text()).toStdString());
 
     while (result.next())
         return result.value("Archived").toBool() == true;
@@ -123,7 +120,7 @@ int SqlLayer::addCategory(const Category& c) const {
     const auto query = QString(R"(INSERT INTO Categories(Name, Color, Archived) VALUES ("%1", "%2", "FALSE"))").arg(c.name_).arg(c.color_.name());
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error adding category");
+        throw std::runtime_error(("Error adding category: " + result.lastError().text()).toStdString());
 
     return result.lastInsertId().toInt();
 }
@@ -132,7 +129,7 @@ void SqlLayer::updateCategory(int id, const QString& name, const QColor& color) 
     const auto query = QString(R"(UPDATE Categories SET Name = "%1", Color = "%2" WHERE Id = %3)").arg(name).arg(color.name()).arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error updating category");
+        throw std::runtime_error(("Error updating category: " + result.lastError().text()).toStdString());
 }
 
 QString toSqlTime(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
@@ -156,7 +153,7 @@ int SqlLayer::addRecord(const Record& r) const {
     const auto result = database_.exec(query);
 
     if (result.lastError().isValid())
-        throw std::runtime_error("Error adding record");
+        throw std::runtime_error(("Error adding record: " + result.lastError().text()).toStdString());
 
     return result.lastInsertId().toInt();
 }
@@ -166,7 +163,7 @@ std::vector<Record> SqlLayer::readRecords() const {
     auto result = database_.exec(query);
 
     if (result.lastError().isValid())
-        throw std::runtime_error("Error obtaining records");
+        throw std::runtime_error(("Error obtaining records: " + result.lastError().text()).toStdString());
 
     std::vector<Record> res;
     while (result.next()) {
@@ -188,7 +185,7 @@ void SqlLayer::finishRecord(int id) const {
     const auto query = QString(R"(UPDATE Records SET Status = %1, PassedTime = PlannedTime WHERE id = %2)").arg(Record::Status::Finished).arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error finishing record");
+        throw std::runtime_error(("Error finishing record: " + result.lastError().text()).toStdString());
 }
 
 void SqlLayer::interruptRecord(int id) const {
@@ -199,14 +196,14 @@ void SqlLayer::interruptRecord(int id) const {
         .arg(id);
     const auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error finishing record");
+        throw std::runtime_error(("Error finishing record: " + result.lastError().text()).toStdString());
 }
 
 int SqlLayer::restingCategoryId() const {
     static const auto query = QString(R"(SELECT Id FROM Categories WHERE Role = "%1")").arg(restingCategoryRole);
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error obtaining resting category id");
+        throw std::runtime_error(("Error obtaining resting category id: " + result.lastError().text()).toStdString());
 
     while (result.next())
         return result.value("Id").toInt();
@@ -227,7 +224,7 @@ bool SqlLayer::isCategoryPersistent(int id) const {
 
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error getting whether category is persistent");
+        throw std::runtime_error(("Error getting whether category is persistent: " + result.lastError().text()).toStdString());
 
     while (result.next())
         return result.value("IsPersistent").toBool();
@@ -265,7 +262,7 @@ std::vector<std::pair<SecondsSinceEpoch, int>> SqlLayer::getCompletedRecords(con
 
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error getting statistics data");
+        throw std::runtime_error(("Error getting statistics data: " + result.lastError().text()).toStdString());
 
     while (result.next())
         res.emplace_back(result.value("Date").toLongLong(), result.value("Count").toInt());
@@ -302,7 +299,7 @@ int SqlLayer::getCompletedRecordsCount(const std::vector<int>& categories,
 
     auto result = database_.exec(query);
     if (result.lastError().isValid())
-        throw std::runtime_error("Error getting records count");
+        throw std::runtime_error(("Error getting records count: " + result.lastError().text()).toStdString());
 
     while (result.next())
         res = result.value("Count").toInt();

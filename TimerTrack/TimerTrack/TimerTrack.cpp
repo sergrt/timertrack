@@ -21,7 +21,6 @@ TimerTrack::TimerTrack(QWidget *parent)
     this->resize(settings_.width(), settings_.height());
     this->move(settings_.pos());
     this->setStyleSheet(settings_.stylesheet());
-    
 
     // Context menu
     updateContextMenu();
@@ -216,16 +215,18 @@ void TimerTrack::updateLabel() const {
     }
 }
 
+void TimerTrack::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton)
+        localMousePos_ = event->globalPos() - pos();
 
-void TimerTrack::mousePressEvent(QMouseEvent *evt) {
-    if (evt->button() == Qt::LeftButton) {
-        localMousePos_ = evt->globalPos() - pos();
-    }
+    QMainWindow::mousePressEvent(event);
 }
-void TimerTrack::mouseMoveEvent(QMouseEvent *evt) {
-    if (evt->buttons() & Qt::LeftButton) {
-        const auto newPos = evt->globalPos() - localMousePos_;
+
+void TimerTrack::mouseMoveEvent(QMouseEvent* event) {
+    if (event->buttons() & Qt::LeftButton) {
+        const auto newPos = event->globalPos() - localMousePos_;
         settings_.setPos(newPos);
         move(newPos);
     }
+    QMainWindow::mouseMoveEvent(event);
 }
