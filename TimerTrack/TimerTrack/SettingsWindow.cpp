@@ -10,6 +10,7 @@ SettingsWindow::SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *
     settings_{ settings } {
 
     ui.setupUi(this);
+    setWindowIcon(QIcon(":/TimerTrack/stopwatch.png"));
     updateUiToDatabase();
     updateUiToSettings();
     setupUiSettingsHandlers();

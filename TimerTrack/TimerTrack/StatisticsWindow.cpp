@@ -50,6 +50,7 @@ StatisticsWindow::StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent)
     sqlLayer_{ sqlLayer } {
 
     ui.setupUi(this);
+    setWindowIcon(QIcon(":/TimerTrack/stopwatch.png"));
     ui.dateTimeEditFrom->setDate(QDateTime::currentDateTime().date());
     ui.dateTimeEditTo->setDate(QDateTime::currentDateTime().date());
 
