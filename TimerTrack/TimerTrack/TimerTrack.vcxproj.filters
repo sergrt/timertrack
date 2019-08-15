@@ -60,6 +60,9 @@
     <ClCompile Include="Record.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StatisticsChart.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StatisticsChart.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

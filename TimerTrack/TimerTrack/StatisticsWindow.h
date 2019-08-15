@@ -2,43 +2,42 @@
 
 #include <QWidget>
 #include "ui_StatisticsWindow.h"
-#include <QChartView>
 #include "Category.h"
+#include "StatisticsChart.h"
 
 class SqlLayer;
-using namespace QtCharts;
 
 class StatisticsWindow : public QWidget {
     Q_OBJECT
 
 public:
     StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent = Q_NULLPTR);
-
-private:
+    ~StatisticsWindow() = default;
     StatisticsWindow(const StatisticsWindow&) = delete;
     StatisticsWindow(StatisticsWindow&&) = delete;
     StatisticsWindow& operator=(const StatisticsWindow&) = delete;
     StatisticsWindow& operator=(StatisticsWindow&&) = delete;
 
+private:
     Ui::StatisticsWindow ui;
-    QChartView* chartView_ = nullptr;
+    StatisticsChart* chartView_ = nullptr;
     SqlLayer& sqlLayer_;
 
     void initChart();
 
     std::vector<int> getSelectedCategories() const;
-    void fillTable() const;
     void fillCategories() const;
 
-    int getTodayCount(const Category& category, int status) const;
-    int getYesterdayCount(const Category& category, int status) const;
-    int getCurWeekCount(const Category& category, int status) const;
-    int getLastWeekCount(const Category& category, int status) const;
-    int getCurMonthCount(const Category& category, int status) const;
-    int getLastMonthCount(const Category& category, int status) const;
-    int getCurYearCount(const Category& category, int status) const;
+    int getTodayStats(const Category& category, int status, bool inMinutes) const;
+    int getYesterdayStats(const Category& category, int status, bool inMinutes) const;
+    int getCurWeekStats(const Category& category, int status, bool inMinutes) const;
+    int getLastWeekStats(const Category& category, int status, bool inMinutes) const;
+    int getCurMonthStats(const Category& category, int status, bool inMinutes) const;
+    int getLastMonthStats(const Category& category, int status, bool inMinutes) const;
+    int getCurYearStats(const Category& category, int status, bool inMinutes) const;
 
 public slots:
     void dateChanged() const;
     void categoriesChanged();
+    void fillTable() const;
 };

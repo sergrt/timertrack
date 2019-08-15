@@ -179,7 +179,7 @@ void TimerTrack::updateContextMenu() {
 
     popupMenu_.addSeparator();
     const auto* actionExit = popupMenu_.addAction("Exit");
-    connect(actionExit, &QAction::triggered, this, [this]() { QApplication::quit(); });
+    connect(actionExit, &QAction::triggered, this, []() { QApplication::quit(); });
 }
 
 void TimerTrack::startNextInterval(std::optional<int> categoryId) {

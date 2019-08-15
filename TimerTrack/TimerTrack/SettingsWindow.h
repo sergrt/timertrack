@@ -12,8 +12,13 @@ class SettingsWindow : public QWidget {
 public:
     SettingsWindow(SqlLayer& sqlLayer, Settings& settings, QWidget *parent = Q_NULLPTR);
     ~SettingsWindow();
+    SettingsWindow(const SettingsWindow&) = delete;
+    SettingsWindow(SettingsWindow&&) = delete;
+    SettingsWindow& operator=(const SettingsWindow&) = delete;
+    SettingsWindow& operator=(SettingsWindow&&) = delete;
 
     QString getContextMenuEntries() const;
+
 private:
     Ui::SettingsWindow ui;
     SqlLayer& sqlLayer_;

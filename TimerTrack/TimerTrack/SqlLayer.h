@@ -2,7 +2,7 @@
 #include <QtSql>
 #include "Category.h"
 
-class Record;
+struct Record;
 
 //extern const QString restingCategoryRole;
 //extern const QString defaultCategoryRole;
@@ -31,12 +31,13 @@ public:
     std::vector<std::pair<SecondsSinceEpoch, int>> getCompletedRecords(const std::vector<int>& categories,
                                                                        const QDateTime& from,
                                                                        const QDateTime& till) const;
-    int getCompletedRecordsCount(const std::vector<int>& categories,
-                                 const QDateTime& from,
-                                 const QDateTime& till,
-                                 int recordStatus) const;
+    int getRecordsStats(const std::vector<int>& categories,
+                        const QDateTime& from,
+                        const QDateTime& till,
+                        int recordStatus,
+                        bool inMinutes) const;
 
-    void createDatabase();
+    void createDatabase() const;
 private:
     QSqlDatabase database_ = QSqlDatabase::addDatabase("QSQLITE");
 };

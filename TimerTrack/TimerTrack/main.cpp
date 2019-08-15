@@ -25,16 +25,22 @@ public:
         }
         memLock_.release();
     }
+
     ~RunGuard() {
         release();
     }
 
-    bool RunGuard::tryToRun() {
+    RunGuard(const RunGuard&) = delete;
+    RunGuard(RunGuard&&) = delete;
+    RunGuard& operator=(const RunGuard&) = delete;
+    RunGuard& operator=(RunGuard&&) = delete;
+
+    bool tryToRun() {
         if (isAnotherRunning())   // Extra check
             return false;
 
         memLock_.acquire();
-        const bool result = sharedMem_.create(sizeof(quint64));
+        const auto result = sharedMem_.create(sizeof(quint64));
         memLock_.release();
         if (!result) {
             release();
@@ -43,6 +49,7 @@ public:
 
         return true;
     }
+
 private:
     bool isAnotherRunning() {
         if (sharedMem_.isAttached())
@@ -56,7 +63,8 @@ private:
 
         return isRunning;
     }
-    void RunGuard::release() {
+
+    void release() {
         memLock_.acquire();
         if (sharedMem_.isAttached())
             sharedMem_.detach();
@@ -69,8 +77,6 @@ private:
 
     QSharedMemory sharedMem_;
     QSystemSemaphore memLock_;
-
-    Q_DISABLE_COPY(RunGuard)
 };
 }
 

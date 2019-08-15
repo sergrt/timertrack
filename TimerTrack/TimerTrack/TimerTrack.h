@@ -18,6 +18,10 @@ class TimerTrack : public QMainWindow {
 public:
     TimerTrack(QWidget *parent = Q_NULLPTR);
     ~TimerTrack();
+    TimerTrack(const TimerTrack&) = delete;
+    TimerTrack(TimerTrack&&) = delete;
+    TimerTrack& operator=(const TimerTrack&) = delete;
+    TimerTrack& operator=(TimerTrack&&) = delete;
 
 private:
     Ui::timerTrackWindow ui;

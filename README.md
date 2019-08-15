@@ -36,7 +36,7 @@ Single interval can be started via context menu by choosing timer interval and c
 
 ![ContextMenu](../assets/assets/ContextMenu.png)
 
-Statistics window can be spawn with context menu, and it is provide both chart and table presentation of the completed pomodoros. Currently chart display only completed pomodoros of the selected categories, and table provides both completed (columns ending with "+" sign) and interrupted (columns ending with "-" sign) pomodoros.
+Statistics window can be spawn with context menu, and it is provide both chart and table presentation of the completed pomodoros. Currently chart display only completed pomodoros of the selected categories, and table provides both completed (columns ending with "+" sign) and interrupted (columns ending with "-" sign) pomodoros, in count or in minutes.
 
 ![StatisticsChart](../assets/assets/StatisticsChart.png)
 

@@ -31,16 +31,16 @@ static const QStringList headerLabels{
     "Category",
     "today+",
     "today-",
-    "yesterday+",
-    "yesterday-",
+    "y'day+",
+    "y'day-",
     "week+",
     "week-",
-    "lastWeek+",
-    "lastWeek-",
+    "last\nweek+",
+    "last\nweek-",
     "month+",
     "month-",
-    "lastMonth+",
-    "lastMonth-",
+    "last\nmonth+",
+    "last\nmonth-",
     "year+",
     "year-"
 };
@@ -51,8 +51,8 @@ StatisticsWindow::StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent)
 
     ui.setupUi(this);
     setWindowIcon(QIcon(":/TimerTrack/stopwatch.png"));
-    ui.dateTimeEditFrom->setDate(QDateTime::currentDateTime().date());
-    ui.dateTimeEditTo->setDate(QDateTime::currentDateTime().date());
+    ui.dateTimeEditFrom->setDate(QDateTime::currentDateTime().date().addDays(-7));
+    ui.dateTimeEditTo->setDate(QDateTime::currentDateTime().date().addDays(1));
 
     ui.statisticsTable->setColumnCount(columnCount);
     ui.statisticsTable->setHorizontalHeaderLabels(headerLabels);
@@ -60,11 +60,20 @@ StatisticsWindow::StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent)
     fillTable();
 
     fillCategories();
+    // check all items to have initial chart view with all categories
+    for (int i = 0; i < ui.categoriesList->count();++i)
+        ui.categoriesList->item(i)->setCheckState(Qt::Checked);
+
     initChart();
 
     connect(ui.dateTimeEditFrom, &QDateTimeEdit::dateTimeChanged, this, &StatisticsWindow::dateChanged);
     connect(ui.dateTimeEditTo, &QDateTimeEdit::dateTimeChanged, this, &StatisticsWindow::dateChanged);
-    connect(ui.categoriesList, &QListWidget::itemClicked, this, &StatisticsWindow::dateChanged);
+    connect(ui.categoriesList, &QListWidget::itemChanged, this, &StatisticsWindow::dateChanged);
+
+    connect(ui.showCount, &QRadioButton::toggled, this, &StatisticsWindow::fillTable);
+    connect(ui.showInMinutes, &QRadioButton::toggled, this, &StatisticsWindow::fillTable);
+
+    dateChanged(); // update chart
 }
 
 void StatisticsWindow::categoriesChanged() {
@@ -94,7 +103,7 @@ void StatisticsWindow::initChart() {
     chart->createDefaultAxes();
     chart->setTitle("Selected categories completed");
 
-    chartView_ = new QChartView(chart);
+    chartView_ = new StatisticsChart(chart);
     chartView_->setRenderHint(QPainter::Antialiasing);
 
     auto* layout = new QGridLayout(ui.frame);
@@ -107,6 +116,7 @@ void StatisticsWindow::fillTable() const {
     ui.statisticsTable->setRowCount(0);
 
     auto categories = sqlLayer_.readCategories();
+    const auto inMinutes = ui.showInMinutes->isChecked();
     for (const auto& c : categories) {
         auto* item = new QTableWidgetItem();
         item->setIcon(c.createIcon());
@@ -116,45 +126,45 @@ void StatisticsWindow::fillTable() const {
 
         // Today
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, todayCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getTodayCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getTodayStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, todayInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getTodayCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getTodayStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Yesterday
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, yesterdayCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getYesterdayCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getYesterdayStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, yesterdayInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getYesterdayCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getYesterdayStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Current week
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curWeekCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurWeekCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurWeekStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curWeekInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurWeekCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurWeekStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Last week
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, lastWeekCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getLastWeekCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getLastWeekStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, lastWeekInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getLastWeekCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getLastWeekStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Current month        
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curMonthCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurMonthCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurMonthStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curMonthInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurMonthCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurMonthStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Last month
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, lastMonthCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getLastMonthCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getLastMonthStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, lastMonthInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getLastMonthCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getLastMonthStats(c, pomodoroStatusInterrupted, inMinutes))));
 
         // Current year
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curYearCompletedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurYearCount(c, pomodoroStatusCompleted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurYearStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curYearInterruptedCol,
-                                    new QTableWidgetItem(QString("%1").arg(getCurYearCount(c, pomodoroStatusInterrupted))));
+                                    new QTableWidgetItem(QString("%1").arg(getCurYearStats(c, pomodoroStatusInterrupted, inMinutes))));
 
     }
 }
@@ -232,45 +242,45 @@ void StatisticsWindow::dateChanged() const {
     chart->update();
 }
 
-int StatisticsWindow::getTodayCount(const Category& category, int status) const {
+int StatisticsWindow::getTodayStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date());
     const auto till = QDateTime(QDateTime::currentDateTime());
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getYesterdayCount(const Category& category, int status) const {
+int StatisticsWindow::getYesterdayStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date().addDays(-1));
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurWeekCount(const Category& category, int status) const {
+int StatisticsWindow::getCurWeekStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date().addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1));
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getLastWeekCount(const Category& category, int status) const {
+int StatisticsWindow::getLastWeekStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto curDate = QDateTime::currentDateTime().date();
     const auto from = QDateTime(curDate.addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1 - 7));
     const auto till = QDateTime(curDate.addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1));
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurMonthCount(const Category& category, int status) const {
+int StatisticsWindow::getCurMonthStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date();
     tmp.setDate(tmp.year(), tmp.month(), 1);
     const auto from = QDateTime(tmp);
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getLastMonthCount(const Category& category, int status) const {
+int StatisticsWindow::getLastMonthStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date().addMonths(-1);
     tmp.setDate(tmp.year(), tmp.month(), 1);
@@ -280,14 +290,14 @@ int StatisticsWindow::getLastMonthCount(const Category& category, int status) co
     tmp.setDate(tmp.year(), tmp.month(), 1);
     const auto till = QDateTime(tmp);
 
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurYearCount(const Category& category, int status) const {
+int StatisticsWindow::getCurYearStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date();
     tmp.setDate(tmp.year(), 1, 1);
     const auto from = QDateTime(tmp);
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getCompletedRecordsCount(queryCategories, from, till, status);
+    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
 }

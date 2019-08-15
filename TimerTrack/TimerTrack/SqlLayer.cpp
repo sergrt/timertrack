@@ -35,7 +35,7 @@ SqlLayer::SqlLayer() {
         createDatabase();
 }
 
-void SqlLayer::createDatabase() {
+void SqlLayer::createDatabase() const {
     const auto statements = createQuery.split("\n");
     for (auto statement : statements) {
         statement = statement.trimmed();
@@ -270,10 +270,11 @@ std::vector<std::pair<SecondsSinceEpoch, int>> SqlLayer::getCompletedRecords(con
     return res;
 }
 
-int SqlLayer::getCompletedRecordsCount(const std::vector<int>& categories,
-                                       const QDateTime& from,
-                                       const QDateTime& till,
-                                       int recordStatus) const {
+int SqlLayer::getRecordsStats(const std::vector<int>& categories,
+                              const QDateTime& from,
+                              const QDateTime& till,
+                              int recordStatus,
+                              bool inMinutes) const {
     if (categories.empty())
         return 0;
 
@@ -285,7 +286,8 @@ int SqlLayer::getCompletedRecordsCount(const std::vector<int>& categories,
 
     const auto query =
         QString(R"(SELECT
-                      Count(*) as Count
+                      Count(*) as Count,
+                      Sum(PassedTime) as TotalMinutes
                   FROM Records
                   WHERE StartTime >= '%1' AND StartTime <='%2'
                   AND Category IN (%3)
@@ -301,8 +303,12 @@ int SqlLayer::getCompletedRecordsCount(const std::vector<int>& categories,
     if (result.lastError().isValid())
         throw std::runtime_error(("Error getting records count: " + result.lastError().text()).toStdString());
 
-    while (result.next())
-        res = result.value("Count").toInt();
+    while (result.next()) {
+        if (inMinutes)
+            res = result.value("TotalMinutes").toInt();
+        else
+            res = result.value("Count").toInt();
+    }
 
     return res;
 }
