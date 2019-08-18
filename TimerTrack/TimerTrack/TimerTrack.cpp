@@ -4,6 +4,7 @@
 #include "Record.h"
 
 static const auto defaultTimerLabelText = QString("--:--");
+static const auto labelUpdateInterval{ 200 };
 
 TimerTrack::TimerTrack(QWidget *parent)
     : QMainWindow(parent),
@@ -36,7 +37,7 @@ TimerTrack::TimerTrack(QWidget *parent)
     timer_.setSingleShot(true);
     connect(&timer_, &QTimer::timeout, this, &TimerTrack::timerFinished);
 
-    labelTimer_.setInterval(1000);
+    labelTimer_.setInterval(labelUpdateInterval);
     connect(&labelTimer_, &QTimer::timeout, this, &TimerTrack::updateLabel);
 }
 
@@ -78,7 +79,6 @@ void TimerTrack::iconActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void TimerTrack::startTimer(std::chrono::milliseconds interval, int recordId) {
-    ui.timerLabel->setText(intervalToStr(interval));
     labelTimer_.start();
 
     timer_.start(interval.count());
@@ -215,10 +215,8 @@ void TimerTrack::interruptTimer() {
 }
 
 void TimerTrack::updateLabel() const {
-    if (auto interval = strToInterval(ui.timerLabel->text())) {
-        *interval -= std::chrono::seconds{ 1 };
-        ui.timerLabel->setText(intervalToStr(*interval));
-    }
+    if (const auto remaining = timer_.remainingTime(); remaining != -1)
+        ui.timerLabel->setText(intervalToStr(std::chrono::milliseconds{remaining}));
 }
 
 void TimerTrack::mousePressEvent(QMouseEvent* event) {
