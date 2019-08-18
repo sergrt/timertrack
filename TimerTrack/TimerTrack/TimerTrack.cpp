@@ -64,6 +64,10 @@ void TimerTrack::changeEvent(QEvent* event) {
     QMainWindow::changeEvent(event);
 }
 
+void TimerTrack::closeEvent(QCloseEvent* event) {
+    QApplication::exit();
+}
+
 void TimerTrack::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     if (reason == QSystemTrayIcon::DoubleClick) {
         if (isHidden())

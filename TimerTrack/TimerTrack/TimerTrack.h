@@ -49,7 +49,8 @@ private:
 protected:
     void changeEvent(QEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent*event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void closeEvent(QCloseEvent* event) override;
     QPoint localMousePos_; // position inside window to calculate offset
 
 public slots:
