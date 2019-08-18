@@ -2,9 +2,10 @@
 #include "StatisticsWindow.h"
 #include <QChartView>
 #include <QLineSeries>
-#include "SqlLayer.h"
 #include <QCategoryAxis>
 #include <set>
+#include "SqlLayer.h"
+#include "Intervals.h"
 
 static const int categoryCol = 0;
 static const int todayCompletedCol = 1;
@@ -125,6 +126,7 @@ void StatisticsWindow::fillTable() const {
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, categoryCol, item);
 
         // Today
+
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, todayCompletedCol,
                                     new QTableWidgetItem(QString("%1").arg(getTodayStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, todayInterruptedCol,
@@ -242,45 +244,53 @@ void StatisticsWindow::dateChanged() const {
     chart->update();
 }
 
-int StatisticsWindow::getTodayStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::queryStats(const std::vector<int>& categores, const QDateTime& from, const QDateTime& till, int status, bool inMinutes) const {
+    const auto res = sqlLayer_.getRecordsStats(categores, from, till, status, inMinutes);
+    if (!inMinutes)
+        return QString("%1").arg(res);
+
+    return intervalToStr(std::chrono::seconds{ res });
+}
+
+QString StatisticsWindow::getTodayStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date());
     const auto till = QDateTime(QDateTime::currentDateTime());
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getYesterdayStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getYesterdayStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date().addDays(-1));
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurWeekStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getCurWeekStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto from = QDateTime(QDateTime::currentDateTime().date().addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1));
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getLastWeekStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getLastWeekStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     const auto curDate = QDateTime::currentDateTime().date();
     const auto from = QDateTime(curDate.addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1 - 7));
     const auto till = QDateTime(curDate.addDays(-QDateTime::currentDateTime().date().dayOfWeek() + 1));
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurMonthStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getCurMonthStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date();
     tmp.setDate(tmp.year(), tmp.month(), 1);
     const auto from = QDateTime(tmp);
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getLastMonthStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getLastMonthStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date().addMonths(-1);
     tmp.setDate(tmp.year(), tmp.month(), 1);
@@ -290,14 +300,14 @@ int StatisticsWindow::getLastMonthStats(const Category& category, int status, bo
     tmp.setDate(tmp.year(), tmp.month(), 1);
     const auto till = QDateTime(tmp);
 
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }
 
-int StatisticsWindow::getCurYearStats(const Category& category, int status, bool inMinutes) const {
+QString StatisticsWindow::getCurYearStats(const Category& category, int status, bool inMinutes) const {
     const std::vector<int> queryCategories{ category.id_ };
     auto tmp = QDateTime::currentDateTime().date();
     tmp.setDate(tmp.year(), 1, 1);
     const auto from = QDateTime(tmp);
     const auto till = QDateTime(QDateTime::currentDateTime().date());
-    return sqlLayer_.getRecordsStats(queryCategories, from, till, status, inMinutes);
+    return queryStats(queryCategories, from, till, status, inMinutes);
 }

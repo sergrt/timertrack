@@ -57,9 +57,6 @@
     <ClCompile Include="Intervals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Record.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="StatisticsChart.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

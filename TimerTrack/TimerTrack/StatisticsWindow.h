@@ -28,14 +28,15 @@ private:
     std::vector<int> getSelectedCategories() const;
     void fillCategories() const;
 
-    int getTodayStats(const Category& category, int status, bool inMinutes) const;
-    int getYesterdayStats(const Category& category, int status, bool inMinutes) const;
-    int getCurWeekStats(const Category& category, int status, bool inMinutes) const;
-    int getLastWeekStats(const Category& category, int status, bool inMinutes) const;
-    int getCurMonthStats(const Category& category, int status, bool inMinutes) const;
-    int getLastMonthStats(const Category& category, int status, bool inMinutes) const;
-    int getCurYearStats(const Category& category, int status, bool inMinutes) const;
+    QString getTodayStats(const Category& category, int status, bool inMinutes) const;
+    QString getYesterdayStats(const Category& category, int status, bool inMinutes) const;
+    QString getCurWeekStats(const Category& category, int status, bool inMinutes) const;
+    QString getLastWeekStats(const Category& category, int status, bool inMinutes) const;
+    QString getCurMonthStats(const Category& category, int status, bool inMinutes) const;
+    QString getLastMonthStats(const Category& category, int status, bool inMinutes) const;
+    QString getCurYearStats(const Category& category, int status, bool inMinutes) const;
 
+    QString queryStats(const std::vector<int>& categores, const QDateTime& from, const QDateTime& till, int status, bool inMinutes) const;
 public slots:
     void dateChanged() const;
     void categoriesChanged();
