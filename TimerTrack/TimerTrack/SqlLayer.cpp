@@ -68,6 +68,27 @@ std::vector<Category> SqlLayer::readCategories() const {
     return res;
 }
 
+Category SqlLayer::getCategory(int id) const {
+    const auto query = QString("SELECT * FROM Categories WHERE id = %1").arg(id);
+    auto result = database_.exec(query);
+
+    if (result.lastError().isValid())
+        throw std::runtime_error(("Error obtaining category: " + result.lastError().text()).toStdString());
+
+    while (result.next()) {
+        Category res;
+        res.id_ = result.value("Id").toInt();
+        res.name_ = result.value("Name").toString();
+        res.color_ = QColor(result.value("Color").toString());
+        res.archived_ = result.value("Archived").toBool();
+        res.role_ = Category::roleFromStr(result.value("Role").toString());
+
+        return res;
+    }
+
+    throw std::runtime_error(("Error obtaining category: " + result.lastError().text()).toStdString());
+}
+
 void SqlLayer::deleteCategory(int id) const {
     const auto query = QString("DELETE FROM Categories WHERE id = %1").arg(id);
     const auto result = database_.exec(query);

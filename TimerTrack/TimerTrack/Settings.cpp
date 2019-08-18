@@ -22,6 +22,9 @@ static const auto defaultStyle = QString(R"(
     color: gray;
     background-color: rgba(255, 255, 255, 0%);
 }
+QToolTip {
+    font-size: 11px;
+}
 )");
 
 namespace IniFile {
@@ -50,6 +53,7 @@ struct Window {
     static const QString PosY;
     static const QString StyleSheet;
     static const QString AlwaysOnTop;
+    static const QString EnableTooltip;
 };
 
 // Data structures
@@ -74,6 +78,7 @@ const QString Window::PosX{ "PosX" };
 const QString Window::PosY{ "PosY" };
 const QString Window::StyleSheet{ "StyleSheet" };
 const QString Window::AlwaysOnTop{ "AlwaysOnTop" };
+const QString Window::EnableTooltip{ "EnableTooltip" };
 
 const QString FinishActions::Popup{ "Popup" };
 const QString FinishActions::Tooltip{ "Tooltip" };
@@ -141,6 +146,7 @@ void Settings::load() {
     posY_ = settings.value(IniFile::Window::PosY).toInt();
     stylesheet_ = settings.value(IniFile::Window::StyleSheet).toString();
     alwaysOnTop_ = settings.value(IniFile::Window::AlwaysOnTop).toBool();
+    enableTooltip_ = settings.value(IniFile::Window::EnableTooltip).toBool();
     settings.endGroup();
 }
 
@@ -243,4 +249,8 @@ void Settings::setPos(const QPoint& p) {
 
 bool Settings::alwaysOnTop() const {
     return alwaysOnTop_;
+}
+
+bool Settings::enableTooltip() const {
+    return enableTooltip_;
 }

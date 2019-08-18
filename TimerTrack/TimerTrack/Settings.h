@@ -39,6 +39,7 @@ public:
     void setPos(const QPoint& p);
 
     bool alwaysOnTop() const;
+    bool enableTooltip() const;
 
 private:
     static const QString settingsFileName;
@@ -54,4 +55,5 @@ private:
     int posY_ = 0;
     QString stylesheet_;
     bool alwaysOnTop_ = true;
+    bool enableTooltip_ = true;
 };

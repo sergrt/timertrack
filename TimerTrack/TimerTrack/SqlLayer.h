@@ -14,6 +14,7 @@ public:
     SqlLayer();
 
     std::vector<Category> readCategories() const;
+    Category getCategory(int id) const;
     void deleteCategory(int id) const;
     void archiveCategory(int id) const;
     void unarchiveCategory(int id) const;

@@ -36,7 +36,13 @@ private:
     void startNextInterval(std::optional<int> categoryId = std::nullopt);
     QTimer timer_;
     QTimer labelTimer_;
-    std::optional<int> activeRecord_;
+
+    struct IntervalInfo {
+        int recordId;
+        QString categoryName;
+    };
+
+    std::optional<IntervalInfo> activeIntervalInfo_;
     QAction* interruptAction_ = nullptr;
     QSystemTrayIcon trayIcon_;
     QMediaPlayer mediaPlayer_;
@@ -45,7 +51,7 @@ private:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void executeFinishActions();
     void stopTimer();
-    void startTimer(std::chrono::milliseconds interval, int recordId);
+    void startTimer(std::chrono::milliseconds interval, IntervalInfo intervalInfo);
 protected:
     void changeEvent(QEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;

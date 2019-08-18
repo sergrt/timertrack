@@ -4,6 +4,7 @@
 #include "Record.h"
 
 static const auto defaultTimerLabelText = QString("--:--");
+static const auto defaultTrayIconTooltip = QString("TimerTrack - no interval is active");
 static const auto labelUpdateInterval{ 200 };
 
 TimerTrack::TimerTrack(QWidget *parent)
@@ -47,7 +48,7 @@ TimerTrack::~TimerTrack() {
 
 void TimerTrack::setupTrayIcon() {
     trayIcon_.setIcon(QIcon(":/TimerTrack/stopwatch.png"));
-    trayIcon_.setToolTip("TimerTrack");
+    trayIcon_.setToolTip(defaultTrayIconTooltip);
     trayIcon_.setContextMenu(&popupMenu_);
     trayIcon_.show();
     connect(&trayIcon_, &QSystemTrayIcon::activated, this, &TimerTrack::iconActivated);
@@ -78,12 +79,15 @@ void TimerTrack::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void TimerTrack::startTimer(std::chrono::milliseconds interval, int recordId) {
+void TimerTrack::startTimer(std::chrono::milliseconds interval, IntervalInfo intervalInfo) {
     labelTimer_.start();
 
     timer_.start(interval.count());
-    activeRecord_ = recordId;
+    activeIntervalInfo_ = std::move(intervalInfo);
     interruptAction_->setDisabled(false);
+    trayIcon_.setToolTip(QString(R"(TimerTrack - "%1" [%2] timer is active)").arg(activeIntervalInfo_->categoryName).arg(intervalToStr(interval)));
+    if (settings_.enableTooltip())
+        ui.timerLabel->setToolTip(QString(R"("%1" [%2])").arg(activeIntervalInfo_->categoryName).arg(intervalToStr(interval)));
 }
 
 void TimerTrack::stopTimer() {
@@ -91,15 +95,18 @@ void TimerTrack::stopTimer() {
     ui.timerLabel->setText(defaultTimerLabelText);
 
     labelTimer_.stop();
-    activeRecord_.reset();
+    activeIntervalInfo_.reset();
     interruptAction_->setDisabled(true);
+    trayIcon_.setToolTip(defaultTrayIconTooltip);
+    if (settings_.enableTooltip())
+        ui.timerLabel->setToolTip(QString());
 }
 
 void TimerTrack::timerFinished() {
-    if (!activeRecord_)
+    if (!activeIntervalInfo_)
         throw std::runtime_error("Something bad happened");
 
-    sqlLayer_.finishRecord(*activeRecord_);
+    sqlLayer_.finishRecord(activeIntervalInfo_->recordId);
     stopTimer();
     executeFinishActions();
 
@@ -129,7 +136,7 @@ void TimerTrack::executeFinishActions() {
 }
 
 void TimerTrack::startTimerSequence() {
-    if (activeRecord_)
+    if (activeIntervalInfo_)
         interruptTimer();
 
     const auto times = sequenceToIntervals(settings_.timerSequence());
@@ -162,7 +169,7 @@ void TimerTrack::updateContextMenu() {
                 action->setIcon(category.createIcon());
 
                 connect(action, &QAction::triggered, this, [&, categoryId = category.id_, timerInterval = interval.first]() {
-                    if (activeRecord_)
+                    if (activeIntervalInfo_)
                         interruptTimer();
                     intervals_ = decltype(intervals_){{ timerInterval, true }};
                     startNextInterval(categoryId);
@@ -200,17 +207,17 @@ void TimerTrack::startNextInterval(std::optional<int> categoryId) {
     r.plannedTime_ = interval.first;
     r.passedTime_ = std::chrono::milliseconds{ 0 };
 
-    const auto id = sqlLayer_.addRecord(r);
+    const auto recordId = sqlLayer_.addRecord(r);
 
-    startTimer(interval.first, id);
+    startTimer(interval.first, { recordId, sqlLayer_.getCategory(*categoryId).name_ });
     intervals_.erase(begin(intervals_));
 }
 
 void TimerTrack::interruptTimer() {
-    if (!activeRecord_)
+    if (!activeIntervalInfo_)
         return;
 
-    sqlLayer_.interruptRecord(*activeRecord_);
+    sqlLayer_.interruptRecord(activeIntervalInfo_->recordId);
     stopTimer();
 }
 
