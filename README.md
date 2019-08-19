@@ -1,6 +1,6 @@
 # TimerTrack
 ## Overview
-TimerTrack is a handy "pomodoro" timer with task categories. The idea is quite simple yet very useful - you can assign every timer interval you set to a specific category, and after a while it is possible to gather valuable statistics about how much time was dedicated to particular activities.
+TimerTrack is a handy "pomodoro" timer with task categories. The idea is quite simple yet very useful - you can assign to every timer interval you set a specific category, and after a while it is possible to gather valuable statistics about how much time was dedicated to particular activities.
 
 ![MainWindow](../assets/assets/MainWindow.png)
 
@@ -36,7 +36,7 @@ Single interval can be started via context menu by choosing timer interval and c
 
 ![ContextMenu](../assets/assets/ContextMenu.png)
 
-Statistics window can be spawn with context menu, and it is provide both chart and table presentation of the completed pomodoros. Currently chart display only completed pomodoros of the selected categories, and table provides both completed (columns ending with "+" sign) and interrupted (columns ending with "-" sign) pomodoros, in count or in minutes.
+Statistics window can be spawn with context menu, and it is provide both chart and table presentation of the completed pomodoros. Currently chart display only completed pomodoros of the selected categories, and table provides both completed (columns ending with "+" sign) and interrupted (columns ending with "-" sign) timer intervals, as a number or as hours/minutes/seconds.
 
 ![StatisticsChart](../assets/assets/StatisticsChart.png)
 
