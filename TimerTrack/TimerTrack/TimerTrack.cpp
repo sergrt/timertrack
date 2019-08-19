@@ -79,15 +79,31 @@ void TimerTrack::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void TimerTrack::startTimer(std::chrono::milliseconds interval, IntervalInfo intervalInfo) {
+void TimerTrack::startTimer(IntervalInfo intervalInfo) {
     labelTimer_.start();
 
-    timer_.start(interval.count());
+    timer_.start(intervalInfo.interval.count());
     activeIntervalInfo_ = std::move(intervalInfo);
     interruptAction_->setDisabled(false);
-    trayIcon_.setToolTip(QString(R"(TimerTrack - "%1" [%2] timer is active)").arg(activeIntervalInfo_->categoryName).arg(intervalToStr(interval)));
-    if (settings_.enableTooltip())
-        ui.timerLabel->setToolTip(QString(R"("%1" [%2])").arg(activeIntervalInfo_->categoryName).arg(intervalToStr(interval)));
+    setTooltips();
+}
+
+void TimerTrack::setTooltips() {
+    if (!activeIntervalInfo_) {
+        trayIcon_.setToolTip(defaultTrayIconTooltip);
+        if (settings_.enableTooltip())
+            ui.timerLabel->setToolTip(QString());
+    } else {
+        trayIcon_.setToolTip(QString(R"(TimerTrack - "%1" [%2] timer is active)")
+                             .arg(activeIntervalInfo_->categoryName)
+                             .arg(intervalToStr(activeIntervalInfo_->interval)));
+
+        if (settings_.enableTooltip()) {
+            ui.timerLabel->setToolTip(QString(R"("%1" [%2])")
+                                      .arg(activeIntervalInfo_->categoryName)
+                                      .arg(intervalToStr(activeIntervalInfo_->interval)));
+        }
+    }
 }
 
 void TimerTrack::stopTimer() {
@@ -97,9 +113,7 @@ void TimerTrack::stopTimer() {
     labelTimer_.stop();
     activeIntervalInfo_.reset();
     interruptAction_->setDisabled(true);
-    trayIcon_.setToolTip(defaultTrayIconTooltip);
-    if (settings_.enableTooltip())
-        ui.timerLabel->setToolTip(QString());
+    setTooltips();
 }
 
 void TimerTrack::timerFinished() {
@@ -107,27 +121,34 @@ void TimerTrack::timerFinished() {
         throw std::runtime_error("Something bad happened");
 
     sqlLayer_.finishRecord(activeIntervalInfo_->recordId);
+    const auto categoryName = activeIntervalInfo_->categoryName;
+    const auto intervalLength = activeIntervalInfo_->interval;
     stopTimer();
-    executeFinishActions();
+    executeFinishActions(categoryName, intervalLength);
 
     if (!intervals_.empty())
         startNextInterval();
 }
 
-void TimerTrack::executeFinishActions() {
+void TimerTrack::executeFinishActions(const QString& categoryName, const std::chrono::milliseconds& length) {
     const auto finishActions = settings_.finishActions();
     for (const auto& a : finishActions) {
         if (a == Settings::FinishAction::Popup) {
             auto* m = new QMessageBox(QDesktopWidget().screen());
+            m->setObjectName("finishMessageBox");
+            m->setStyleSheet(settings_.stylesheet());
             m->setIcon(QMessageBox::Information);
-            m->setFont(this->font());
             m->setAttribute(Qt::WA_DeleteOnClose, true);
             m->setWindowFlags(m->windowFlags() | Qt::WindowStaysOnTopHint | Qt::Tool);
             m->setWindowTitle("Finished");
-            m->setText("Interval finished");
+            m->setText(QString(R"(Interval "%1" [%2] finished)")
+                       .arg(categoryName)
+                       .arg(intervalToStr(length)));
             m->show();
         } else if (a == Settings::FinishAction::Tooltip) {
-            trayIcon_.showMessage("Finished", "Interval finished");
+            trayIcon_.showMessage("Finished", QString(R"(Interval "%1" [%2] finished)")
+                                  .arg(categoryName)
+                                  .arg(intervalToStr(length)));
         } else if (a == Settings::FinishAction::Sound) {
             mediaPlayer_.setMedia(QUrl::fromLocalFile(settings_.soundFileName()));
             mediaPlayer_.play();
@@ -143,7 +164,7 @@ void TimerTrack::startTimerSequence() {
     intervals_.clear();
     auto odd = true;
     for (auto t : times) {
-        intervals_.emplace_back(t, odd);
+        intervals_.push_back({ t, odd });
         odd = !odd;
     }
     if (!intervals_.empty())
@@ -194,22 +215,22 @@ void TimerTrack::updateContextMenu() {
 }
 
 void TimerTrack::startNextInterval(std::optional<int> categoryId) {
-    const auto interval = intervals_.front();
+    const auto curInterval = intervals_.front();
     if (!categoryId)
-        categoryId = interval.second ? settings_.defaultCategoryId() : sqlLayer_.restingCategoryId();
+        categoryId = curInterval.isOdd ? settings_.defaultCategoryId() : sqlLayer_.restingCategoryId();
 
-    qDebug(QString("Starting interval of %1ms of category id = %2").arg(interval.first.count()).arg(*categoryId).toStdString().c_str());
+    qDebug(QString("Starting interval of %1ms of category id = %2").arg(curInterval.interval.count()).arg(*categoryId).toStdString().c_str());
 
     Record r;
     r.category_ = *categoryId;
     r.status_ = Record::Status::Started;
     r.startTime_ = std::chrono::system_clock::now();
-    r.plannedTime_ = interval.first;
+    r.plannedTime_ = curInterval.interval;
     r.passedTime_ = std::chrono::milliseconds{ 0 };
 
     const auto recordId = sqlLayer_.addRecord(r);
 
-    startTimer(interval.first, { recordId, sqlLayer_.getCategory(*categoryId).name_ });
+    startTimer({ recordId, sqlLayer_.getCategory(*categoryId).name_, curInterval.interval });
     intervals_.erase(begin(intervals_));
 }
 

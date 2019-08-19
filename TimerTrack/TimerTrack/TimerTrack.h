@@ -31,7 +31,10 @@ private:
     StatisticsWindow statisticsWindow_;
     QMenu popupMenu_;
 
-    using IntervalOddEven = std::pair<std::chrono::milliseconds, bool>;
+    struct IntervalOddEven {
+        std::chrono::milliseconds interval;
+        bool isOdd;
+    };
     std::vector<IntervalOddEven> intervals_; //TODO: consider queue
     void startNextInterval(std::optional<int> categoryId = std::nullopt);
     QTimer timer_;
@@ -40,6 +43,7 @@ private:
     struct IntervalInfo {
         int recordId;
         QString categoryName;
+        std::chrono::milliseconds interval;
     };
 
     std::optional<IntervalInfo> activeIntervalInfo_;
@@ -49,9 +53,11 @@ private:
 
     void setupTrayIcon();
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
-    void executeFinishActions();
+    void executeFinishActions(const QString& categoryName, const std::chrono::milliseconds& length);
     void stopTimer();
-    void startTimer(std::chrono::milliseconds interval, IntervalInfo intervalInfo);
+    void startTimer(IntervalInfo intervalInfo);
+    void setTooltips();
+
 protected:
     void changeEvent(QEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;

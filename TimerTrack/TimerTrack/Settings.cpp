@@ -25,6 +25,14 @@ static const auto defaultStyle = QString(R"(
 QToolTip {
     font-size: 11px;
 }
+/*
+#finishMessageBox {
+    background-color: rgb(151, 151, 151);
+}
+#finishMessageBox QLabel {
+    color: rgb(0, 0, 0);
+}
+*/
 )");
 
 namespace IniFile {
