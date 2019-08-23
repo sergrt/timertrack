@@ -38,11 +38,16 @@ QToolTip {
 namespace IniFile {
 
 // Section names
+static const QString Application{ "Application" };
 static const QString Timer{ "Timer" };
 static const QString ContextMenu{ "ContextMenu" };
 static const QString Window{ "Window" };
 
 // Section structure
+struct Application {
+    static const QString Language;
+};
+
 struct Timer {
     static const QString TimerSequence;
     static const QString FinishActions;
@@ -73,6 +78,8 @@ struct FinishActions {
 };
 
 // Definitions
+const QString Application::Language{ "Language" };
+
 const QString Timer::TimerSequence{ "TimerSequence" };
 const QString Timer::FinishActions{ "FinishActions" };
 const QString Timer::SoundFileName{ "SoundFileName" };
@@ -124,6 +131,10 @@ Settings::Settings() {
 
 void Settings::load() {
     QSettings settings(settingsFileName, QSettings::Format::IniFormat);
+
+    settings.beginGroup(IniFile::Application);
+    language_ = settings.value(IniFile::Application::Language).toString();
+    settings.endGroup();
 
     settings.beginGroup(IniFile::Timer);
     const auto timersSequence = settings.value(IniFile::Timer::TimerSequence).toString();
@@ -262,3 +273,8 @@ bool Settings::alwaysOnTop() const {
 bool Settings::enableTooltip() const {
     return enableTooltip_;
 }
+
+QString Settings::language() const {
+    return language_;
+}
+

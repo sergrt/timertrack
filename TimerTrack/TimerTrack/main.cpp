@@ -86,7 +86,22 @@ int main(int argc, char *argv[]) {
         return 0;
 
     QApplication a(argc, argv);
-    a.setQuitOnLastWindowClosed(false);
+    QApplication::setQuitOnLastWindowClosed(false);
+
+    QString lang;
+    {
+        const Settings settings;
+        lang = settings.language();
+    }
+
+    QTranslator qtTranslator;
+    qtTranslator.load("qt_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    QApplication::installTranslator(&qtTranslator);
+
+    QTranslator appTranslator;
+    appTranslator.load("timertrack_" + lang);
+    QApplication::installTranslator(&appTranslator);
+
     TimerTrack w;
     w.show();
     return a.exec();

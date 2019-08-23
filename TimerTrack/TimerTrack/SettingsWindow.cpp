@@ -102,7 +102,7 @@ void SettingsWindow::reloadCategories() const {
         auto* item = new QListWidgetItem(c.createIcon(), c.name_);
         item->setData(Qt::UserRole, QVariant(c.id_));
         if (c.archived_)
-            item->setTextColor(Qt::gray);
+            item->setForeground(Qt::gray);
         ui.categoriesList->addItem(item);
     }
 }
@@ -119,7 +119,7 @@ void SettingsWindow::timerSequenceChanged() const {
 }
 
 void SettingsWindow::browseSoundFile() {
-    QFileDialog dlg(this, "Select file name", QString(), "Sound files (*.wav *.mp3)");
+    QFileDialog dlg(this, tr("Select file name"), QString(), tr("Sound files (*.wav *.mp3)"));
     dlg.setFileMode(QFileDialog::ExistingFile);
     dlg.setDirectory(QDir().filePath(settings_.soundFileName()));
     if (dlg.exec() == QDialog::DialogCode::Accepted) {
@@ -175,10 +175,10 @@ void SettingsWindow::deleteCategory() const {
     if (const auto* item = ui.categoriesList->currentItem()) {
         const auto id = item->data(Qt::UserRole).toInt();
         if (sqlLayer_.isCategoryPersistent(id)) {
-            QMessageBox msg(QMessageBox::Information, "", "Category is persistent and cannot be deleted.", QMessageBox::Ok);
+            QMessageBox msg(QMessageBox::Information, "", tr("Category is persistent and cannot be deleted."), QMessageBox::Ok);
             msg.exec();
         } else if (sqlLayer_.isCategoryArchived(id)) {
-            QMessageBox msg(QMessageBox::Information, "", "Category is archived and cannot be deleted. Some records in the database use it.", QMessageBox::Ok);
+            QMessageBox msg(QMessageBox::Information, "", tr("Category is archived and cannot be deleted. Some records in the database use it."), QMessageBox::Ok);
             msg.exec();
         } else {
 

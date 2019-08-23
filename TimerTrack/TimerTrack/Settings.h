@@ -20,7 +20,6 @@ public:
 
     std::set<FinishAction> finishActions() const;
     void updateFinishAction(FinishAction action, bool enabled);
-    
 
     int defaultCategoryId() const;
     void setDefaultCategoryId(int id);
@@ -41,6 +40,8 @@ public:
     bool alwaysOnTop() const;
     bool enableTooltip() const;
 
+    QString language() const;
+
 private:
     static const QString settingsFileName;
 
@@ -56,4 +57,5 @@ private:
     QString stylesheet_;
     bool alwaysOnTop_ = true;
     bool enableTooltip_ = true;
+    QString language_;
 };

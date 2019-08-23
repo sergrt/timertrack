@@ -39,6 +39,6 @@ private:
     QString queryStats(const std::vector<int>& categores, const QDateTime& from, const QDateTime& till, int status, bool inMinutes) const;
 public slots:
     void dateChanged() const;
-    void categoriesChanged();
+    void categoriesChanged() const;
     void fillTable() const;
 };

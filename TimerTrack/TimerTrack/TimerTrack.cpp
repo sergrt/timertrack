@@ -3,8 +3,8 @@
 #include "Intervals.h"
 #include "Record.h"
 
-static const auto defaultTimerLabelText = QString("--:--");
-static const auto defaultTrayIconTooltip = QString("TimerTrack - no interval is active");
+static const auto defaultTimerLabelText = QString(QApplication::tr("--:--", "TimerTrackDefaultLabelText"));
+static const auto defaultTrayIconTooltip = QString(QApplication::tr("TimerTrack - no interval is active", "TimerTrackDefaultLabelTooltip"));
 static const auto labelUpdateInterval{ 200 };
 
 TimerTrack::TimerTrack(QWidget *parent)
@@ -95,14 +95,14 @@ void TimerTrack::setTooltips() {
             ui.timerLabel->setToolTip(QString());
     } else {
         // Escape ampersand
-        auto tooltipStr = QString(R"(TimerTrack - "%1" [%2] timer is active)")
+        auto tooltipStr = QString(tr(R"(TimerTrack - "%1" [%2] timer is active)"))
             .arg(activeIntervalInfo_->categoryName)
             .arg(intervalToStr(activeIntervalInfo_->interval));
         tooltipStr.replace("&", "&&&");
         trayIcon_.setToolTip(tooltipStr);
 
         if (settings_.enableTooltip()) {
-            ui.timerLabel->setToolTip(QString(R"("%1" [%2])")
+            ui.timerLabel->setToolTip(QString(tr(R"("%1" [%2])"))
                                       .arg(activeIntervalInfo_->categoryName)
                                       .arg(intervalToStr(activeIntervalInfo_->interval)));
         }
@@ -143,13 +143,13 @@ void TimerTrack::executeFinishActions(const QString& categoryName, const std::ch
             m->setIcon(QMessageBox::Information);
             m->setAttribute(Qt::WA_DeleteOnClose, true);
             m->setWindowFlags(m->windowFlags() | Qt::WindowStaysOnTopHint | Qt::Tool);
-            m->setWindowTitle("Finished");
-            m->setText(QString(R"(Interval "%1" [%2] finished)")
+            m->setWindowTitle(tr("Finished", "MessageBoxHeader"));
+            m->setText(QString(tr(R"(Interval "%1" [%2] finished)", "MessageBoxText"))
                        .arg(categoryName)
                        .arg(intervalToStr(length)));
             m->show();
         } else if (a == Settings::FinishAction::Tooltip) {
-            trayIcon_.showMessage("Finished", QString(R"(Interval "%1" [%2] finished)")
+            trayIcon_.showMessage(tr("Finished", "TrayIconHeader"), QString(tr(R"(Interval "%1" [%2] finished)", "TrayMessage"))
                                   .arg(categoryName)
                                   .arg(intervalToStr(length)));
         } else if (a == Settings::FinishAction::Sound) {
@@ -178,7 +178,7 @@ void TimerTrack::updateContextMenu() {
     popupMenu_.clear();
     interruptAction_ = nullptr;
 
-    const auto* startPattenAction = popupMenu_.addAction("Start sequence");
+    const auto* startPattenAction = popupMenu_.addAction(tr("Start sequence"));
     connect(startPattenAction, &QAction::triggered, this, &TimerTrack::startTimerSequence);
 
     const auto contextMenuIntervals = entriesToIntervals(settingsWindow_.getContextMenuEntries());
@@ -204,19 +204,19 @@ void TimerTrack::updateContextMenu() {
             }
         }
     }
-    interruptAction_ = popupMenu_.addAction("Interrupt current timer");
+    interruptAction_ = popupMenu_.addAction(tr("Interrupt current timer"));
     connect(interruptAction_, &QAction::triggered, this, &TimerTrack::interruptTimer);
     interruptAction_->setDisabled(!timer_.isActive());
 
     popupMenu_.addSeparator();
-    const auto* actionSettings = popupMenu_.addAction("Settings...");
-    const auto* actionStatistics = popupMenu_.addAction("Statistics...");
+    const auto* actionSettings = popupMenu_.addAction(tr("Settings..."));
+    const auto* actionStatistics = popupMenu_.addAction(tr("Statistics..."));
 
     connect(actionSettings, &QAction::triggered, this, [this]() { settingsWindow_.show(); });
     connect(actionStatistics, &QAction::triggered, this, [this]() { statisticsWindow_.show(); });
 
     popupMenu_.addSeparator();
-    const auto* actionExit = popupMenu_.addAction("Exit");
+    const auto* actionExit = popupMenu_.addAction(tr("Exit"));
     connect(actionExit, &QAction::triggered, this, []() { QApplication::quit(); });
 }
 

@@ -29,21 +29,21 @@ extern const int pomodoroStatusInterrupted;
 const int columnCount = 15;
 
 static const QStringList headerLabels{
-    "Category",
-    "today+",
-    "today-",
-    "y'day+",
-    "y'day-",
-    "week+",
-    "week-",
-    "last\nweek+",
-    "last\nweek-",
-    "month+",
-    "month-",
-    "last\nmonth+",
-    "last\nmonth-",
-    "year+",
-    "year-"
+    QHeaderView::tr("Category"),
+    QHeaderView::tr("today+"),
+    QHeaderView::tr("today-"),
+    QHeaderView::tr("y'day+"),
+    QHeaderView::tr("y'day-"),
+    QHeaderView::tr("week+"),
+    QHeaderView::tr("week-"),
+    QHeaderView::tr("last\nweek+"),
+    QHeaderView::tr("last\nweek-"),
+    QHeaderView::tr("month+"),
+    QHeaderView::tr("month-"),
+    QHeaderView::tr("last\nmonth+"),
+    QHeaderView::tr("last\nmonth-"),
+    QHeaderView::tr("year+"),
+    QHeaderView::tr("year-")
 };
 
 StatisticsWindow::StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent)
@@ -77,7 +77,7 @@ StatisticsWindow::StatisticsWindow(SqlLayer& sqlLayer, QWidget *parent)
     dateChanged(); // update chart
 }
 
-void StatisticsWindow::categoriesChanged() {
+void StatisticsWindow::categoriesChanged() const {
     fillCategories();
     fillTable();
     dateChanged();
@@ -93,7 +93,7 @@ void StatisticsWindow::fillCategories() const {
         item->setCheckState(Qt::Unchecked);
         item->setData(Qt::UserRole, QVariant(c.id_));
         if (c.archived_)
-            item->setTextColor(Qt::gray);
+            item->setForeground(Qt::gray);
         ui.categoriesList->addItem(item);
     }
 }
@@ -102,7 +102,7 @@ void StatisticsWindow::initChart() {
     auto* chart = new QChart();
     chart->legend()->hide();
     chart->createDefaultAxes();
-    chart->setTitle("Selected categories completed");
+    chart->setTitle(tr("Completed items"));
 
     chartView_ = new StatisticsChart(chart);
     chartView_->setRenderHint(QPainter::Antialiasing);
@@ -167,7 +167,6 @@ void StatisticsWindow::fillTable() const {
                                     new QTableWidgetItem(QString("%1").arg(getCurYearStats(c, pomodoroStatusCompleted, inMinutes))));
         ui.statisticsTable->setItem(ui.statisticsTable->rowCount() - 1, curYearInterruptedCol,
                                     new QTableWidgetItem(QString("%1").arg(getCurYearStats(c, pomodoroStatusInterrupted, inMinutes))));
-
     }
 }
 

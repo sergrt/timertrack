@@ -27,7 +27,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Timer sequence (like &quot;25m,5m,10:00,1h&quot;). Every second interval considered as &quot;Resting&quot;.</string>
+          <string>Timer sequence (like &quot;25m,5m,10:00,1h&quot;). Every second interval considered as resting.</string>
          </property>
         </widget>
        </item>
