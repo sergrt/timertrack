@@ -94,9 +94,12 @@ void TimerTrack::setTooltips() {
         if (settings_.enableTooltip())
             ui.timerLabel->setToolTip(QString());
     } else {
-        trayIcon_.setToolTip(QString(R"(TimerTrack - "%1" [%2] timer is active)")
-                             .arg(activeIntervalInfo_->categoryName)
-                             .arg(intervalToStr(activeIntervalInfo_->interval)));
+        // Escape ampersand
+        auto tooltipStr = QString(R"(TimerTrack - "%1" [%2] timer is active)")
+            .arg(activeIntervalInfo_->categoryName)
+            .arg(intervalToStr(activeIntervalInfo_->interval));
+        tooltipStr.replace("&", "&&&");
+        trayIcon_.setToolTip(tooltipStr);
 
         if (settings_.enableTooltip()) {
             ui.timerLabel->setToolTip(QString(R"("%1" [%2])")
@@ -185,7 +188,10 @@ void TimerTrack::updateContextMenu() {
         auto* menu = popupMenu_.addMenu(interval.second);
         for (const auto& category : categories) {
             if (!category.archived_) {
-                auto* action = menu->addAction(category.name_);
+                // Replace ampersand
+                auto categoryName = category.name_;
+                categoryName.replace("&", "&&");
+                auto* action = menu->addAction(categoryName);
                 action->setData(interval.first.count());
                 action->setIcon(category.createIcon());
 
